@@ -17,8 +17,10 @@ let package = Package(
         
         .library(
             name: "WSPublisher",
-            targets: ["WSPublisher"])
-//        .executable(name: "TypeGeneration", targets: ["Scripts"])
+            targets: ["WSPublisher"]),
+        .library(
+            name: "JSONValue",
+            targets: ["JSONValue"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
