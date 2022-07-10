@@ -115,7 +115,7 @@ extension WebSocketPublisher {
         
         public var urlString: String {
             var str = "\(scheme)://\(ipAddress):\(port)"
-            if let pass = password {
+            if let pass = password, !pass.isEmpty {
                 str += "/\(pass)"
             }
             return str
