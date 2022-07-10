@@ -17,17 +17,17 @@ let package = Package(
         
         .library(
             name: "WSPublisher",
-            targets: ["WSPublisher"]),
-        .library(
-            name: "JSONValue",
-            targets: ["JSONValue"])
+            targets: ["WSPublisher"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(
             name: "swift-format",
             url: "https://github.com/apple/swift-format.git",
-            .upToNextMinor(from: "0.50300.0"))
+            .upToNextMinor(from: "0.50300.0")),
+        .package(name: "JSONValue",
+            url: "https://github.com/edonv/JSONValue.git",
+            .branch("main"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -36,17 +36,14 @@ let package = Package(
             name: "OBSwiftSocket",
             dependencies: ["JSONValue", "WSPublisher"]
         ),
-        .target(name: "JSONValue"),
         .target(
             name: "WSPublisher"
-//            sources: ["WSPublisher"]
         ),
         .target(
             name: "Scripts",
             dependencies: ["JSONValue", "swift-format"],
             resources: [
                 .copy("Resources")
-                //                .process("OBS-WS Protocol.md")
             ]
         ),
         .testTarget(
