@@ -9,8 +9,8 @@ import Foundation
 import Combine
 import WSPublisher
 
-public final class OBSSessionManager {
-    init() {
+public final class OBSSessionManager: ObservableObject {
+    public init() {
         self.wsPublisher = WebSocketPublisher()
     }
     
@@ -27,7 +27,7 @@ public final class OBSSessionManager {
         currentPreviewSceneName ?? currentProgramSceneName
     }
     
-    var waitUntilConnected: AnyPublisher<Void, Error> {
+    public var waitUntilConnected: AnyPublisher<Void, Error> {
         return $isConnected
             .setFailureType(to: Error.self)
             .filter { $0 }
