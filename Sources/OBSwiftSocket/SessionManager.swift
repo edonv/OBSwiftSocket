@@ -40,8 +40,8 @@ public final class OBSSessionManager: ObservableObject {
 // MARK: - Connections
 
 extension OBSSessionManager {
-    public func persistConnectionData(url: WebSocketPublisher.ConnectionData) {
-        try? UserDefaults.standard.set(encodable: url, forKey: .connectionData)
+    public func persistConnectionData(_ connectionData: WebSocketPublisher.ConnectionData) {
+        try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
     
     public func loadConnectionData() -> WebSocketPublisher.ConnectionData? {
@@ -85,7 +85,7 @@ extension OBSSessionManager {
                 self?.isConnected = true
                 
                 if persistConnectionData {
-                    self?.persistConnectionData(url: connectionData)
+                    self?.persistConnectionData(connectionData)
                 }
                 self?.connectionObserver?.cancel()
                 try? self?.addObservers()
