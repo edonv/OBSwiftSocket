@@ -9,8 +9,8 @@ import Foundation
 import Combine
 import WSPublisher
 
-final class SessionManager {
-    static let shared = SessionManager()
+public final class OBSSessionManager {
+    public static let shared = OBSSessionManager()
     
     private init() {
         self.wsPublisher = WebSocketPublisher()
@@ -45,8 +45,8 @@ extension UserDefaults.Key {
     static let connectionData = Self(rawValue: "connectionData")
 }
 
-extension SessionManager {
     func persistConnectionData(url: WebSocketPublisher.ConnectionData) {
+extension OBSSessionManager {
         try? UserDefaults.standard.set(encodable: url, forKey: .connectionData)
     }
     
@@ -142,13 +142,13 @@ extension SessionManager {
             })
             .store(in: &observers)
         
-        try SessionManager.shared.listenForEvent(OBSEvents.CurrentProgramSceneChanged.self)
+        try OBSSessionManager.shared.listenForEvent(OBSEvents.CurrentProgramSceneChanged.self)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newProgramSceneName in
                 self?.currentProgramSceneName = newProgramSceneName
             }).store(in: &observers)
         
-        try SessionManager.shared.listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self)
+        try OBSSessionManager.shared.listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newPreviewSceneName in
                 self?.currentPreviewSceneName = newPreviewSceneName
@@ -158,7 +158,7 @@ extension SessionManager {
 
 // MARK: - Sending Requests
 
-extension SessionManager {
+public extension OBSSessionManager {
     func sendRequest<R: OBSRequest>(_ request: R) -> AnyPublisher<R.ResponseType, Error> {
         guard let type = request.typeEnum,
               let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
@@ -205,7 +205,7 @@ extension SessionManager {
 
 // MARK: - Observable Publishers
 
-extension SessionManager {
+public extension OBSSessionManager {
     var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
         return wsPublisher.publisher
             .compactMap { msg -> UntypedMessage? in
@@ -255,7 +255,7 @@ extension SessionManager {
 
 // MARK: - Listening for Events
 
-extension SessionManager {
+public extension OBSSessionManager {
     func listenForEvent(_ eventType: OBSEvents.AllTypes) throws -> AnyPublisher<OBSEvent, Error> {
         return waitUntilConnected
             .flatMap { _ in self.publisher(forMessageOfType: OpDataTypes.Event.self) }
@@ -285,7 +285,7 @@ extension SessionManager {
 
 // MARK: - Errors
 
-extension SessionManager {
+internal extension OBSSessionManager {
     enum Errors: Error {
         case requestResponse(OpDataTypes.RequestResponse.Status)
         case buildingRequest
