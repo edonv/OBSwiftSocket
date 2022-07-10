@@ -86,12 +86,19 @@ public class WebSocketPublisher: NSObject {
     }
 }
 
-public extension WebSocketPublisher {
-    struct ConnectionData: Codable {
-        var scheme: String
-        var ipAddress: String
-        var port: Int
-        var password: String?
+extension WebSocketPublisher {
+    public struct ConnectionData: Codable {
+        public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?) {
+            self.scheme = scheme
+            self.ipAddress = ipAddress
+            self.port = port
+            self.password = password
+        }
+        
+        public var scheme: String = "ws"
+        public var ipAddress: String
+        public var port: Int
+        public var password: String?
         
         //        static func from(urlString: String) -> ConnectionData? {
         //            let pattern =
@@ -106,7 +113,7 @@ public extension WebSocketPublisher {
         ////            if let
         //        }
         
-        var urlString: String {
+        public var urlString: String {
             var str = "\(scheme)://\(ipAddress):\(port)"
             if let pass = password {
                 str += "/\(pass)"
@@ -114,7 +121,7 @@ public extension WebSocketPublisher {
             return str
         }
         
-        var url: URL? {
+        public var url: URL? {
             return URL(string: urlString)
         }
     }
