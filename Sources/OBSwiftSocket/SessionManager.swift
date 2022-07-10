@@ -10,9 +10,7 @@ import Combine
 import WSPublisher
 
 public final class OBSSessionManager {
-    public static let shared = OBSSessionManager()
-    
-    private init() {
+    init() {
         self.wsPublisher = WebSocketPublisher()
     }
     
