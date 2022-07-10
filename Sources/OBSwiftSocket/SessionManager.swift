@@ -18,7 +18,7 @@ public final class OBSSessionManager: ObservableObject {
     var observers = Set<AnyCancellable>()
     
     var connectionObserver: AnyCancellable? = nil
-    @Published var isConnected: Bool = false
+    @Published public var isConnected: Bool = false
     @Published var isStudioModeEnabled: Bool = false
     @Published var currentProgramSceneName: String! = nil
     @Published var currentPreviewSceneName: String? = nil
