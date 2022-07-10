@@ -768,6 +768,13 @@ func generateProtocol() {
     
     // TODO: group the requests and events by category?
     
+    let filePath = URL(fileURLWithPath: #file)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appendingPathComponent("OBSwiftSocket")
+        .appendingPathComponent("Generated")
+        .appendingPathComponent("Types.swift")
+    
     do {
 //        var swiftConfig = SwiftFormatConfiguration.Configuration()
 //        swiftConfig.indentation = .spaces(4)
@@ -781,7 +788,7 @@ func generateProtocol() {
 //        try source.write(to: &output)
 //        print(URL(fileURLWithPath: ".", isDirectory: true))
         
-        try source.write(toFile: "/Users/edon/Documents/DevStuff/XcodeTests/OBSwift/OBSwiftSocket Stuff/OBSwiftSocket/Sources/OBSwiftSocket/Generated/Types.swift",
+        try source.write(to: filePath,
                          atomically: true,
                          encoding: .utf8)
         
