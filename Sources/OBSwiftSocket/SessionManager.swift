@@ -54,7 +54,7 @@ extension OBSSessionManager {
         return try? UserDefaults.standard.decodable(WebSocketPublisher.ConnectionData.self, forKey: .connectionData)
     }
     
-    public func connect(using connectionData: WebSocketPublisher.ConnectionData, events: OBSEnums.EventSubscription?) {
+    public func connect(using connectionData: WebSocketPublisher.ConnectionData, persistConnectionData: Bool = true, events: OBSEnums.EventSubscription?) {
         // Set up listeners/publishers before starting connection.
         
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
@@ -89,7 +89,10 @@ extension OBSSessionManager {
             .tryFlatMap { _ in try self.getInitialData() }
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] in
                 self?.isConnected = true
-                self?.persistConnectionData(url: connectionData)
+                
+                if persistConnectionData {
+                    self?.persistConnectionData(url: connectionData)
+                }
                 self?.connectionObserver?.cancel()
                 try? self?.addObservers()
             })
