@@ -139,13 +139,13 @@ extension OBSSessionManager {
             })
             .store(in: &observers)
         
-        try OBSSessionManager.shared.listenForEvent(OBSEvents.CurrentProgramSceneChanged.self)
+        try listenForEvent(OBSEvents.CurrentProgramSceneChanged.self)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newProgramSceneName in
                 self?.currentProgramSceneName = newProgramSceneName
             }).store(in: &observers)
         
-        try OBSSessionManager.shared.listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self)
+        try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newPreviewSceneName in
                 self?.currentPreviewSceneName = newPreviewSceneName
