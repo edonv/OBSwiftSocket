@@ -3129,87 +3129,25 @@ public enum OBSRequests {
     }
 }
 
-extension OBSRequests.SaveSourceScreenshot: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(sourceName, forKey: .sourceName)
-        try container.encode(imageFormat, forKey: .imageFormat)
-        try container.encode(imageFilePath, forKey: .imageFilePath)
-        try container.encodeIfPresent(imageWidth, forKey: .imageWidth)
-        try container.encodeIfPresent(imageHeight, forKey: .imageHeight)
-        try container.encodeIfPresent(imageCompressionQuality, forKey: .imageCompressionQuality)
-    }
-}
-
-extension OBSRequests.SaveSourceScreenshot: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.sourceName = try container.decode(String.self, forKey: .sourceName)
-        self.imageFormat = try container.decode(String.self, forKey: .imageFormat)
-        self.imageFilePath = try container.decode(String.self, forKey: .imageFilePath)
-        self.imageWidth = try container.decodeIfPresent(Int.self, forKey: .imageWidth)
-        self.imageHeight = try container.decodeIfPresent(Int.self, forKey: .imageHeight)
-        self.imageCompressionQuality = try container.decodeIfPresent(Int.self, forKey: .imageCompressionQuality)
-    }
-}
-
-extension OBSRequests.SetInputVolume: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(inputName, forKey: .inputName)
-        try container.encodeIfPresent(inputVolumeMul, forKey: .inputVolumeMul)
-        try container.encodeIfPresent(inputVolumeDb, forKey: .inputVolumeDb)
-    }
-}
-
-extension OBSRequests.SetInputVolume: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.inputName = try container.decode(String.self, forKey: .inputName)
-        self.inputVolumeMul = try container.decodeIfPresent(Int.self, forKey: .inputVolumeMul)
-        self.inputVolumeDb = try container.decodeIfPresent(Int.self, forKey: .inputVolumeDb)
-    }
-}
-
-extension OBSRequests.GetInputList: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encodeIfPresent(inputKind, forKey: .inputKind)
-    }
-}
-
-extension OBSRequests.GetInputList: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.inputKind = try container.decodeIfPresent(String.self, forKey: .inputKind)
-    }
-}
-
-extension OBSRequests.CreateSourceFilter: Encodable {
+extension OBSRequests.SetSourceFilterSettings: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         try container.encode(sourceName, forKey: .sourceName)
         try container.encode(filterName, forKey: .filterName)
-        try container.encode(filterKind, forKey: .filterKind)
-        try container.encodeIfPresent(filterSettings, forKey: .filterSettings)
+        try container.encode(filterSettings, forKey: .filterSettings)
+        try container.encodeIfPresent(overlay, forKey: .overlay)
     }
 }
 
-extension OBSRequests.CreateSourceFilter: Decodable {
+extension OBSRequests.SetSourceFilterSettings: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         self.sourceName = try container.decode(String.self, forKey: .sourceName)
         self.filterName = try container.decode(String.self, forKey: .filterName)
-        self.filterKind = try container.decode(String.self, forKey: .filterKind)
-        self.filterSettings = try container.decodeIfPresent(JSONValue.self, forKey: .filterSettings)
+        self.filterSettings = try container.decode(JSONValue.self, forKey: .filterSettings)
+        self.overlay = try container.decodeIfPresent(Bool.self, forKey: .overlay)
     }
 }
 
@@ -3230,24 +3168,6 @@ extension OBSRequests.SetInputSettings: Decodable {
         self.inputName = try container.decode(String.self, forKey: .inputName)
         self.inputSettings = try container.decode(JSONValue.self, forKey: .inputSettings)
         self.overlay = try container.decodeIfPresent(Bool.self, forKey: .overlay)
-    }
-}
-
-extension OBSRequests.SetTBarPosition: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(position, forKey: .position)
-        try container.encodeIfPresent(release, forKey: .release)
-    }
-}
-
-extension OBSRequests.SetTBarPosition: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.position = try container.decode(Double.self, forKey: .position)
-        self.release = try container.decodeIfPresent(Bool.self, forKey: .release)
     }
 }
 
@@ -3272,6 +3192,98 @@ extension OBSRequests.CreateInput: Decodable {
         self.inputKind = try container.decode(String.self, forKey: .inputKind)
         self.inputSettings = try container.decodeIfPresent(JSONValue.self, forKey: .inputSettings)
         self.sceneItemEnabled = try container.decodeIfPresent(Bool.self, forKey: .sceneItemEnabled)
+    }
+}
+
+extension OBSRequests.SetVideoSettings: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encodeIfPresent(fpsNumerator, forKey: .fpsNumerator)
+        try container.encodeIfPresent(fpsDenominator, forKey: .fpsDenominator)
+        try container.encodeIfPresent(baseWidth, forKey: .baseWidth)
+        try container.encodeIfPresent(baseHeight, forKey: .baseHeight)
+        try container.encodeIfPresent(outputWidth, forKey: .outputWidth)
+        try container.encodeIfPresent(outputHeight, forKey: .outputHeight)
+    }
+}
+
+extension OBSRequests.SetVideoSettings: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.fpsNumerator = try container.decodeIfPresent(Int.self, forKey: .fpsNumerator)
+        self.fpsDenominator = try container.decodeIfPresent(Int.self, forKey: .fpsDenominator)
+        self.baseWidth = try container.decodeIfPresent(Int.self, forKey: .baseWidth)
+        self.baseHeight = try container.decodeIfPresent(Int.self, forKey: .baseHeight)
+        self.outputWidth = try container.decodeIfPresent(Int.self, forKey: .outputWidth)
+        self.outputHeight = try container.decodeIfPresent(Int.self, forKey: .outputHeight)
+    }
+}
+
+extension OBSRequests.GetInputList: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encodeIfPresent(inputKind, forKey: .inputKind)
+    }
+}
+
+extension OBSRequests.GetInputList: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.inputKind = try container.decodeIfPresent(String.self, forKey: .inputKind)
+    }
+}
+
+extension OBSRequests.GetSourceScreenshot: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(sourceName, forKey: .sourceName)
+        try container.encode(imageFormat, forKey: .imageFormat)
+        try container.encodeIfPresent(imageWidth, forKey: .imageWidth)
+        try container.encodeIfPresent(imageHeight, forKey: .imageHeight)
+        try container.encodeIfPresent(imageCompressionQuality, forKey: .imageCompressionQuality)
+    }
+}
+
+extension OBSRequests.GetSourceScreenshot: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.sourceName = try container.decode(String.self, forKey: .sourceName)
+        self.imageFormat = try container.decode(String.self, forKey: .imageFormat)
+        self.imageWidth = try container.decodeIfPresent(Int.self, forKey: .imageWidth)
+        self.imageHeight = try container.decodeIfPresent(Int.self, forKey: .imageHeight)
+        self.imageCompressionQuality = try container.decodeIfPresent(Int.self, forKey: .imageCompressionQuality)
+    }
+}
+
+extension OBSRequests.SaveSourceScreenshot: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(sourceName, forKey: .sourceName)
+        try container.encode(imageFormat, forKey: .imageFormat)
+        try container.encode(imageFilePath, forKey: .imageFilePath)
+        try container.encodeIfPresent(imageWidth, forKey: .imageWidth)
+        try container.encodeIfPresent(imageHeight, forKey: .imageHeight)
+        try container.encodeIfPresent(imageCompressionQuality, forKey: .imageCompressionQuality)
+    }
+}
+
+extension OBSRequests.SaveSourceScreenshot: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.sourceName = try container.decode(String.self, forKey: .sourceName)
+        self.imageFormat = try container.decode(String.self, forKey: .imageFormat)
+        self.imageFilePath = try container.decode(String.self, forKey: .imageFilePath)
+        self.imageWidth = try container.decodeIfPresent(Int.self, forKey: .imageWidth)
+        self.imageHeight = try container.decodeIfPresent(Int.self, forKey: .imageHeight)
+        self.imageCompressionQuality = try container.decodeIfPresent(Int.self, forKey: .imageCompressionQuality)
     }
 }
 
@@ -3315,27 +3327,75 @@ extension OBSRequests.SetSceneSceneTransitionOverride: Decodable {
     }
 }
 
-extension OBSRequests.GetSourceScreenshot: Encodable {
+extension OBSRequests.CallVendorRequest: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(sourceName, forKey: .sourceName)
-        try container.encode(imageFormat, forKey: .imageFormat)
-        try container.encodeIfPresent(imageWidth, forKey: .imageWidth)
-        try container.encodeIfPresent(imageHeight, forKey: .imageHeight)
-        try container.encodeIfPresent(imageCompressionQuality, forKey: .imageCompressionQuality)
+        try container.encode(vendorName, forKey: .vendorName)
+        try container.encode(requestType, forKey: .requestType)
+        try container.encodeIfPresent(requestData, forKey: .requestData)
     }
 }
 
-extension OBSRequests.GetSourceScreenshot: Decodable {
+extension OBSRequests.CallVendorRequest: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        self.sourceName = try container.decode(String.self, forKey: .sourceName)
-        self.imageFormat = try container.decode(String.self, forKey: .imageFormat)
-        self.imageWidth = try container.decodeIfPresent(Int.self, forKey: .imageWidth)
-        self.imageHeight = try container.decodeIfPresent(Int.self, forKey: .imageHeight)
-        self.imageCompressionQuality = try container.decodeIfPresent(Int.self, forKey: .imageCompressionQuality)
+        self.vendorName = try container.decode(String.self, forKey: .vendorName)
+        self.requestType = try container.decode(String.self, forKey: .requestType)
+        self.requestData = try container.decodeIfPresent(JSONValue.self, forKey: .requestData)
+    }
+}
+
+extension OBSRequests.GetInputKindList: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encodeIfPresent(unversioned, forKey: .unversioned)
+    }
+}
+
+extension OBSRequests.GetInputKindList: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.unversioned = try container.decodeIfPresent(Bool.self, forKey: .unversioned)
+    }
+}
+
+extension OBSRequests.SetCurrentSceneTransitionSettings: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(transitionSettings, forKey: .transitionSettings)
+        try container.encodeIfPresent(overlay, forKey: .overlay)
+    }
+}
+
+extension OBSRequests.SetCurrentSceneTransitionSettings: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.transitionSettings = try container.decode(JSONValue.self, forKey: .transitionSettings)
+        self.overlay = try container.decodeIfPresent(Bool.self, forKey: .overlay)
+    }
+}
+
+extension OBSRequests.SetTBarPosition: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(position, forKey: .position)
+        try container.encodeIfPresent(release, forKey: .release)
+    }
+}
+
+extension OBSRequests.SetTBarPosition: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.position = try container.decode(Double.self, forKey: .position)
+        self.release = try container.decodeIfPresent(Bool.self, forKey: .release)
     }
 }
 
@@ -3359,88 +3419,6 @@ extension OBSRequests.CreateSceneItem: Decodable {
     }
 }
 
-extension OBSRequests.SetVideoSettings: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encodeIfPresent(fpsNumerator, forKey: .fpsNumerator)
-        try container.encodeIfPresent(fpsDenominator, forKey: .fpsDenominator)
-        try container.encodeIfPresent(baseWidth, forKey: .baseWidth)
-        try container.encodeIfPresent(baseHeight, forKey: .baseHeight)
-        try container.encodeIfPresent(outputWidth, forKey: .outputWidth)
-        try container.encodeIfPresent(outputHeight, forKey: .outputHeight)
-    }
-}
-
-extension OBSRequests.SetVideoSettings: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.fpsNumerator = try container.decodeIfPresent(Int.self, forKey: .fpsNumerator)
-        self.fpsDenominator = try container.decodeIfPresent(Int.self, forKey: .fpsDenominator)
-        self.baseWidth = try container.decodeIfPresent(Int.self, forKey: .baseWidth)
-        self.baseHeight = try container.decodeIfPresent(Int.self, forKey: .baseHeight)
-        self.outputWidth = try container.decodeIfPresent(Int.self, forKey: .outputWidth)
-        self.outputHeight = try container.decodeIfPresent(Int.self, forKey: .outputHeight)
-    }
-}
-
-extension OBSRequests.SetSourceFilterSettings: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(sourceName, forKey: .sourceName)
-        try container.encode(filterName, forKey: .filterName)
-        try container.encode(filterSettings, forKey: .filterSettings)
-        try container.encodeIfPresent(overlay, forKey: .overlay)
-    }
-}
-
-extension OBSRequests.SetSourceFilterSettings: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.sourceName = try container.decode(String.self, forKey: .sourceName)
-        self.filterName = try container.decode(String.self, forKey: .filterName)
-        self.filterSettings = try container.decode(JSONValue.self, forKey: .filterSettings)
-        self.overlay = try container.decodeIfPresent(Bool.self, forKey: .overlay)
-    }
-}
-
-extension OBSRequests.SetCurrentSceneTransitionSettings: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(transitionSettings, forKey: .transitionSettings)
-        try container.encodeIfPresent(overlay, forKey: .overlay)
-    }
-}
-
-extension OBSRequests.SetCurrentSceneTransitionSettings: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.transitionSettings = try container.decode(JSONValue.self, forKey: .transitionSettings)
-        self.overlay = try container.decodeIfPresent(Bool.self, forKey: .overlay)
-    }
-}
-
-extension OBSRequests.GetInputKindList: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encodeIfPresent(unversioned, forKey: .unversioned)
-    }
-}
-
-extension OBSRequests.GetInputKindList: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        self.unversioned = try container.decodeIfPresent(Bool.self, forKey: .unversioned)
-    }
-}
-
 extension OBSRequests.DuplicateSceneItem: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -3461,23 +3439,45 @@ extension OBSRequests.DuplicateSceneItem: Decodable {
     }
 }
 
-extension OBSRequests.CallVendorRequest: Encodable {
+extension OBSRequests.CreateSourceFilter: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(vendorName, forKey: .vendorName)
-        try container.encode(requestType, forKey: .requestType)
-        try container.encodeIfPresent(requestData, forKey: .requestData)
+        try container.encode(sourceName, forKey: .sourceName)
+        try container.encode(filterName, forKey: .filterName)
+        try container.encode(filterKind, forKey: .filterKind)
+        try container.encodeIfPresent(filterSettings, forKey: .filterSettings)
     }
 }
 
-extension OBSRequests.CallVendorRequest: Decodable {
+extension OBSRequests.CreateSourceFilter: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        self.vendorName = try container.decode(String.self, forKey: .vendorName)
-        self.requestType = try container.decode(String.self, forKey: .requestType)
-        self.requestData = try container.decodeIfPresent(JSONValue.self, forKey: .requestData)
+        self.sourceName = try container.decode(String.self, forKey: .sourceName)
+        self.filterName = try container.decode(String.self, forKey: .filterName)
+        self.filterKind = try container.decode(String.self, forKey: .filterKind)
+        self.filterSettings = try container.decodeIfPresent(JSONValue.self, forKey: .filterSettings)
+    }
+}
+
+extension OBSRequests.SetInputVolume: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(inputName, forKey: .inputName)
+        try container.encodeIfPresent(inputVolumeMul, forKey: .inputVolumeMul)
+        try container.encodeIfPresent(inputVolumeDb, forKey: .inputVolumeDb)
+    }
+}
+
+extension OBSRequests.SetInputVolume: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.inputName = try container.decode(String.self, forKey: .inputName)
+        self.inputVolumeMul = try container.decodeIfPresent(Int.self, forKey: .inputVolumeMul)
+        self.inputVolumeDb = try container.decodeIfPresent(Int.self, forKey: .inputVolumeDb)
     }
 }
 
