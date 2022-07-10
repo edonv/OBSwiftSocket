@@ -396,7 +396,9 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 .replacingOccurrences(of: "Note:", with: "- Note:")
                 .split(separator: "\n")
                 .map { "/// \(String($0))" }
-                .joined(separator: "\n///\n"))
+                .joined(separator: "\n///\n")
+                .replacingOccurrences(of: "///\n/// -", with: "/// -"))
+            
             /// - Complexity: `\(r.complexity)/5`
             /// - Version: Latest Supported RPC Version - `\(r.rpcVersion)`
             /// - Since: Added in v\(r.initialVersion)
