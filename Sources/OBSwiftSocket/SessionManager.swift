@@ -45,16 +45,16 @@ extension UserDefaults.Key {
     static let connectionData = Self(rawValue: "connectionData")
 }
 
-    func persistConnectionData(url: WebSocketPublisher.ConnectionData) {
 extension OBSSessionManager {
+    public func persistConnectionData(url: WebSocketPublisher.ConnectionData) {
         try? UserDefaults.standard.set(encodable: url, forKey: .connectionData)
     }
     
-    func loadConnectionData() -> WebSocketPublisher.ConnectionData? {
+    public func loadConnectionData() -> WebSocketPublisher.ConnectionData? {
         return try? UserDefaults.standard.decodable(WebSocketPublisher.ConnectionData.self, forKey: .connectionData)
     }
     
-    func connect(using connectionData: WebSocketPublisher.ConnectionData, events: OBSEnums.EventSubscription?) {
+    public func connect(using connectionData: WebSocketPublisher.ConnectionData, events: OBSEnums.EventSubscription?) {
         // Set up listeners/publishers before starting connection.
         
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
@@ -97,7 +97,7 @@ extension OBSSessionManager {
         wsPublisher.connect(using: connectionData)
     }
     
-    func getInitialData() throws -> AnyPublisher<Void, Error> {
+    public func getInitialData() throws -> AnyPublisher<Void, Error> {
         // Uses direct calls to `wsPub.sendRequest` because local one would be waiting until connected
         let studioModeReq = sendRequest(OBSRequests.GetStudioModeEnabled())
             .map(\.studioModeEnabled)
@@ -124,7 +124,7 @@ extension OBSSessionManager {
             .asVoid()
     }
     
-    func addObservers() throws {
+    private func addObservers() throws {
         // Observe to keep isConnected updated
         wsPublisher.publisher
             .filter { event -> Bool in

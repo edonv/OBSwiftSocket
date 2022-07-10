@@ -13,7 +13,7 @@ import CommonCrypto
 // MARK: - Messages
 
 /// - ToDo: Custom Decodable that uses the `operation` property to know which `MessageType` to use.
-struct UntypedMessage: Codable {
+public struct UntypedMessage: Codable {
     var operation: OBSEnums.OpCode
     var data: JSONValue
     
@@ -54,7 +54,7 @@ struct UntypedMessage: Codable {
     }
 }
 
-struct Message<BodyType: OBSOpData>: Codable {
+public struct Message<BodyType: OBSOpData>: Codable {
     var operation: OBSEnums.OpCode
     var data: BodyType
     
@@ -115,7 +115,7 @@ public extension OBSEvent {
 }
 
 // MARK: - OpData Types
-protocol OBSOpData: Codable {
+public protocol OBSOpData: Codable {
     static var opCode: OBSEnums.OpCode { get }
     //    var operation: Codes.Operation
     //    var data: JSONValue
@@ -128,7 +128,7 @@ public enum OpDataTypes {
     /// - **Sent from:** obs-websocket
     /// - **Sent to:** Freshly connected websocket client
     public struct Hello: OBSOpData {
-        static var opCode: OBSEnums.OpCode = .hello
+        public static var opCode: OBSEnums.OpCode = .hello
         
         var obsWebSocketVersion: String
         /// `rpcVersion` is a version number which gets incremented on each breaking change to the obs-websocket protocol. Its usage in this context is to provide the current rpc version that the server would like to use.
@@ -171,7 +171,7 @@ public enum OpDataTypes {
     /// - **Sent from:** Freshly connected websocket client
     /// - **Sent to:** obs-websocket
     public struct Identify: OBSOpData {
-        static var opCode: OBSEnums.OpCode = .identify
+        public static var opCode: OBSEnums.OpCode = .identify
         
         /// `rpcVersion` is the version number that the client would like the obs-websocket server to use.
         var rpcVersion: Int
@@ -184,7 +184,7 @@ public enum OpDataTypes {
     /// - **Sent from:** obs-websocket
     /// - **Sent to:** Freshly identified client
     public struct Identified: OBSOpData {
-        static var opCode: OBSEnums.OpCode = .identified
+        public static var opCode: OBSEnums.OpCode = .identified
         
         /// If rpc version negotiation succeeds, the server determines the RPC version to be used and gives it to the client as `negotiatedRpcVersion`
         var negotiatedRpcVersion: Int
@@ -194,7 +194,7 @@ public enum OpDataTypes {
     /// - **Sent from:** Identified client
     /// - **Sent to:** obs-websocket
     public struct Reidentify: OBSOpData {
-        static var opCode: OBSEnums.OpCode = .reidentify
+        public static var opCode: OBSEnums.OpCode = .reidentify
         
         /// Only the listed parameters may be changed after initial identification. To change a parameter not listed, you must reconnect to the obs-websocket server
         /// - ToDo: custom implementation for decode that if null = .all
@@ -205,7 +205,7 @@ public enum OpDataTypes {
     /// - **Sent from:** obs-websocket
     /// - **Sent to:** All subscribed and identified clients
     public struct Event: OBSOpData {
-        static var opCode: OBSEnums.OpCode { .event }
+        public static var opCode: OBSEnums.OpCode { .event }
         
         /// - ToDo: Make this `E.type` or something?
         var type: OBSEvents.AllTypes
@@ -223,7 +223,7 @@ public enum OpDataTypes {
     /// - **Sent from:** Identified client
     /// - **Sent to:** obs-websocket
     public struct Request: OBSOpData {
-        static var opCode: OBSEnums.OpCode { .request }
+        public static var opCode: OBSEnums.OpCode { .request }
         
         var type: OBSRequests.AllTypes
 //        var type: R.Type
@@ -250,7 +250,7 @@ public enum OpDataTypes {
     /// - **Sent from:** obs-websocket
     /// - **Sent to:** Identified client which made the request
     public struct RequestResponse: OBSOpData, OBSRequestResponse {
-        static var opCode: OBSEnums.OpCode { .requestResponse }
+        public static var opCode: OBSEnums.OpCode { .requestResponse }
         
         var type: OBSRequests.AllTypes
         var id: String
@@ -283,7 +283,7 @@ public enum OpDataTypes {
     /// - **Sent from:** Identified client
     /// - **Sent to:** obs-websocket
     public struct RequestBatch: OBSOpData {
-        static var opCode: OBSEnums.OpCode { .requestBatch }
+        public static var opCode: OBSEnums.OpCode { .requestBatch }
         
         var id: String
         /// When `haltOnFailure` is `true`, the processing of requests will be halted on first failure. Returns only the processed requests in `RequestBatchResponse`. Defaults to `false`.
@@ -316,7 +316,7 @@ public enum OpDataTypes {
     /// - **Sent from:** obs-websocket
     /// - **Sent to:** Identified client which made the request
     public struct RequestBatchResponse: OBSOpData {
-        static var opCode: OBSEnums.OpCode { .requestBatchResponse }
+        public static var opCode: OBSEnums.OpCode { .requestBatchResponse }
         
         var id: String
         var results: [Response]
