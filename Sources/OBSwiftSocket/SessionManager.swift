@@ -41,10 +41,6 @@ public final class OBSSessionManager {
 
 // MARK: - Connections
 
-extension UserDefaults.Key {
-    static let connectionData = Self(rawValue: "connectionData")
-}
-
 extension OBSSessionManager {
     public func persistConnectionData(url: WebSocketPublisher.ConnectionData) {
         try? UserDefaults.standard.set(encodable: url, forKey: .connectionData)

@@ -115,11 +115,18 @@ extension Publisher {
 // MARK: - UserDefaults
 
 extension UserDefaults {
+    /// A type to create static `UserDefaults` keys to add safety.
     struct Key: RawRepresentable {
         typealias RawValue = String
         var rawValue: RawValue
     }
-    
+}
+
+extension UserDefaults.Key {
+    internal static let connectionData = Self(rawValue: "connectionData")
+}
+
+extension UserDefaults {
     func set<T: Encodable>(encodable: T, forKey key: Key) throws {
         try set(encodable: encodable, forKey: key.rawValue)
     }
