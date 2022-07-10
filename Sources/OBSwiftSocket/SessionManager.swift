@@ -13,10 +13,10 @@ final class SessionManager {
     static let shared = SessionManager()
     
     private init() {
-        self.wsPub = WebSocketPublisher()
+        self.wsPublisher = WebSocketPublisher()
     }
     
-    var wsPub: WebSocketPublisher
+    public var wsPublisher: WebSocketPublisher
     var observers = Set<AnyCancellable>()
     
     var connectionObserver: AnyCancellable? = nil
@@ -67,13 +67,13 @@ extension SessionManager {
             //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
             .compactMap { data in
                 // TODO: replace return nil with throwing a connection error
-                guard let pass = self.wsPub.password else { return nil }
+                guard let pass = self.wsPublisher.password else { return nil }
                 return data.toIdentify(password: pass)
             }
             .map { data -> Message<OpDataTypes.Identify> in
                 Message<OpDataTypes.Identify>.wrap(data: data)
             }
-            .flatMap { self.wsPub.send($0) }
+            .flatMap { self.wsPublisher.send($0) }
             
             // - The server receives and processes the `Identify` sent by the client.
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
@@ -94,7 +94,7 @@ extension SessionManager {
                 try? self?.addObservers()
             })
         
-        wsPub.connect(using: connectionData)
+        wsPublisher.connect(using: connectionData)
     }
     
     func getInitialData() throws -> AnyPublisher<Void, Error> {
@@ -126,7 +126,7 @@ extension SessionManager {
     
     func addObservers() throws {
         // Observe to keep isConnected updated
-        wsPub.publisher
+        wsPublisher.publisher
             .filter { event -> Bool in
                 guard case .disconnected(_, _) = event else { return false }
                 return true
@@ -167,7 +167,7 @@ extension SessionManager {
         }
         
         let msg = Message<OpDataTypes.Request>(data: body)
-        return wsPub.send(msg)
+        return wsPublisher.send(msg)
             .flatMap { self.publisher(forResponseTo: request, withID: msg.data.id) }
             .eraseToAnyPublisher()
     }
@@ -195,7 +195,7 @@ extension SessionManager {
         let msgBody = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         let msg = Message<OpDataTypes.RequestBatch>(data: msgBody)
         
-        return wsPub.send(msg)
+        return wsPublisher.send(msg)
             .flatMap { self.publisher(forMessageOfType: OpDataTypes.RequestBatchResponse.self) }
             .filter { [msgBody] in $0.id == msgBody.id }
             .tryMap { try $0.mapResults() }
@@ -207,7 +207,7 @@ extension SessionManager {
 
 extension SessionManager {
     var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
-        return wsPub.publisher
+        return wsPublisher.publisher
             .compactMap { msg -> UntypedMessage? in
                 switch msg {
 //                case .data(let d):
