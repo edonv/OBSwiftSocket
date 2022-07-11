@@ -719,8 +719,6 @@ func generateEvents(_ events: [OBSEvent]) -> String {
 // MARK: - Start Script
 
 func generateProtocol() {
-    
-    
     let protocolJson = Bundle.module.url(
         forResource: "Resources/OBS-WS Protocol",
         withExtension: "json"
