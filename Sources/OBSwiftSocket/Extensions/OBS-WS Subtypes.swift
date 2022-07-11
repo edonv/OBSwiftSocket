@@ -8,11 +8,11 @@
 import Foundation
 
 extension OBSRequests.GetSceneList.Response {
-    func typedScenes() -> [Scene] {
+    public func typedScenes() -> [Scene] {
         return self.scenes.map { try! $0.toCodable(Scene.self) }
     }
     
-    struct Scene: Codable, Comparable {
+    public struct Scene: Codable, Comparable {
         var index: Int
         var name: String
         
