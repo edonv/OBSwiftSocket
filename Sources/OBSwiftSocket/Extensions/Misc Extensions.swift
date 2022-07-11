@@ -41,14 +41,14 @@ extension JSONEncoder {
 
 // MARK: Excludable<T>
 
-enum Excludable<T> where T: Codable {
+public enum Excludable<T> where T: Codable {
     case included(T)
     case null
     case excluded
 }
 
 extension Excludable: Encodable {
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         
         switch self {
@@ -63,7 +63,7 @@ extension Excludable: Encodable {
 }
 
 extension Excludable: Decodable {
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
         if let value = try? container.decode(T.self) {
@@ -116,9 +116,13 @@ extension Publisher {
 
 extension UserDefaults {
     /// A type to create static `UserDefaults` keys to add safety.
-    struct Key: RawRepresentable {
-        typealias RawValue = String
-        var rawValue: RawValue
+    public struct Key: RawRepresentable {
+        public typealias RawValue = String
+        public var rawValue: RawValue
+        
+        public init(rawValue: RawValue) {
+            self.rawValue = rawValue
+        }
     }
 }
 
@@ -126,7 +130,7 @@ extension UserDefaults.Key {
     internal static let connectionData = Self(rawValue: "connectionData")
 }
 
-extension UserDefaults {
+public extension UserDefaults {
     func set<T: Encodable>(encodable: T, forKey key: Key) throws {
         try set(encodable: encodable, forKey: key.rawValue)
     }
