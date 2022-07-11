@@ -12,7 +12,11 @@ extension OBSRequests.GetSceneList.Response {
         return self.scenes.map { try! $0.toCodable(Scene.self) }
     }
     
-    struct Scene: Codable, Comparable {
+    struct Scene: Codable, Comparable, Identifiable {
+        var id: String {
+            return name
+        }
+        
         var index: Int
         var name: String
         
