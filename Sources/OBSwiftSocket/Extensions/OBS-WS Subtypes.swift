@@ -13,16 +13,11 @@ extension OBSRequests.GetSceneList.Response {
     }
     
     public struct Scene: Codable, Comparable {
-        var index: Int
-        var name: String
+        var sceneIndex: Int
+        var sceneName: String
         
-        enum CodingKeys: String, CodingKey {
-            case index = "sceneIndex"
-            case name = "sceneName"
-        }
-        
-        static func < (lhs: Scene, rhs: Scene) -> Bool {
-            return lhs.index < rhs.index
+        public static func < (lhs: Scene, rhs: Scene) -> Bool {
+            return lhs.sceneIndex < rhs.sceneIndex
         }
     }
 }
