@@ -63,16 +63,14 @@ struct OBSRequest: Codable, Hashable {
         category = globalFormatCategoryName(category)
     }
     
+    /// Currently only used for `KeyModifiers`
     func generateSubTypeTypes() -> String? {
         guard !requestFields.isEmpty
                 && requestFields.contains(where: { $0.valueName.contains(".") }) else { return nil }
         
         let fieldNames = requestFields.map(\.valueName)
         
-        // Ones that have `.`'s
-        
-        // It's grouping them mostly correctly
-        // For the KeyModifiers subtype, it needs to keep keyModifiers in normalFields, only skip the ones that have a `.` in the name.
+        // Ones that have `.`'s (like sub-objects)
         let subTypes = requestFields
             .filter { field -> Bool in
                 return fieldNames.contains(where: { $0.contains(field.valueName + ".") })
@@ -82,6 +80,9 @@ struct OBSRequest: Codable, Hashable {
                 return !subTypes.contains(where: { field.valueName.contains($0.valueName + ".") })
             }
         
+        var initParams = [String]()
+        var initBody = [String]()
+        
         var fullStr = normalFields.map { field -> String in
             var valueType = mapType(field.valueType, nil)
             
@@ -89,16 +90,30 @@ struct OBSRequest: Codable, Hashable {
                 valueType = (field.valueName.prefix(1).uppercased() + field.valueName.dropFirst())
             }
             
+            // STILL NEED TO ADD INIT HERE
+            initParams.append("\(field.valueName): \(valueType)")
+            initBody.append("self.\(field.valueName) = \(field.valueName)")
+            
             return [
                 field.valueDescription
                     .split(separator: "\n")
                     .map { createTabs(2) + "/// \(String($0))" }
                     .joined(separator: "\n"),
                 
-                createTabs(2) + "var \(field.valueName): \(valueType)"
+                createTabs(2) + "public var \(field.valueName): \(valueType)"
             ].joined(separator: "\n")
         }.joined(separator: "\n\n")
         
+        fullStr += "\n\n" + createTabs(2)
+            + "public init("
+            + initParams
+            .joined(separator: ", ")
+            + ") {\n"
+            + initBody
+            .map { createTabs(3) + $0 }
+            .joined(separator: "\n")
+            + "\n" + createTabs(2) + "}"
+
         fullStr += subTypes.map { sub -> String in
             let subTypeFields = requestFields
                 .filter { $0.valueName.contains(sub.valueName + ".") }
@@ -108,6 +123,17 @@ struct OBSRequest: Codable, Hashable {
                         .replacingOccurrences(of: sub.valueName + ".", with: "")
                     return temp
                 }
+            
+            let initParams = subTypeFields.map { field -> String in
+                let valueType = mapType(field.valueType, nil)
+                return "\(field.valueName): \(valueType)"
+            }.joined(separator: ", ")
+            
+            let initBody = "\n" + subTypeFields.map { field -> String in
+                "self.\(field.valueName) = \(field.valueName)"
+            }
+            .map { createTabs(4) + $0 }
+            .joined(separator: "\n")
             
             return "\n\n" + createTabs(2) +
                 """
@@ -122,9 +148,13 @@ struct OBSRequest: Codable, Hashable {
                             .map { createTabs(3) + "/// \(String($0))" }
                             .joined(separator: "\n"),
                         
-                        createTabs(3) + "var \(field.valueName): \(valueType)"
+                        createTabs(3) + "public var \(field.valueName): \(valueType)"
                     ].joined(separator: "\n")
                 }.joined(separator: "\n\n")
+                + "\n\n" + createTabs(3)
+                + "public init(" + initParams + ") {"
+                + initBody
+                + "\n" + createTabs(3) + "}"
                 + "\n" + createTabs(2) + "}"
         }.joined(separator: "\n\n")
         
@@ -271,16 +301,16 @@ func generateEnums(_ enums: [OBSEnum]) -> String {
                             .map { camelized(String($0)) }
                             .joined(separator: ", .") + "]"
                         
-                        return "static let \(camelized(enumId.enumIdentifier)): \(enumName) = \(value)"
+                        return "public static let \(camelized(enumId.enumIdentifier)): \(enumName) = \(value)"
                     } else {
                         let value = str
                             .replacingOccurrences(of: "(", with: "")
                             .replacingOccurrences(of: ")", with: "")
                         
-                        return "static let \(camelized(enumId.enumIdentifier)) = \(enumName)(rawValue: \(value))"
+                        return "public static let \(camelized(enumId.enumIdentifier)) = \(enumName)(rawValue: \(value))"
                     }
                 } else if case .int(let i) = enumId.enumValue {
-                    return "static let \(camelized(enumId.enumIdentifier)) = \(i)"
+                    return "public static let \(camelized(enumId.enumIdentifier)) = \(i)"
                 } else {
                     return ""
                 }
@@ -413,8 +443,11 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
             if let typesWithSubTypes = r.generateSubTypeTypes() {
                 finalStr += "\n\n" + typesWithSubTypes
             } else {
+                var initParams = [String]()
+                var initBody = [String]()
+                
                 // Request Fields
-                finalStr += "\n\n" + r.requestFields.map { field -> String in
+                let reqFields = r.requestFields.map { field -> String in
                     var valueType = mapType(field.valueType, field.valueRestrictions)
                     
                     if let range = field.valueDescription.range(of: #"(`\w+`) enum"#, options: .regularExpression) {
@@ -450,6 +483,9 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                         fieldsToSkip[r, default: []].append(field)
                     }
                     
+                    initParams.append("\(field.valueName): \(valueType)")
+                    initBody.append("self.\(field.valueName) = \(field.valueName)")
+                    
                     return [
                         field.valueDescription
                             .replacingOccurrences(of: "TODO", with: "- ToDo")
@@ -470,13 +506,28 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                             ? "/// - Important: \(optionalTerm) Behavior - `\(field.valueOptionalBehavior!)`"
                             : nil,
                         
-                        "var \(field.valueName): \(valueType)",
+                        "public var \(field.valueName): \(valueType)",
                     ]
                     .compactMap { $0 }
                     .map { createTabs(2) + $0 }
                     .joined(separator: "\n")
                 }.joined(separator: "\n\n")
+                
+                finalStr += "\n\n" + reqFields
+                
+                // Public Explicit Init
+                finalStr += "\n\n" + createTabs(2)
+                    + "public init("
+                    + initParams
+                        .joined(separator: ", ")
+                    + ") {\n"
+                    + initBody
+                        .map { createTabs(3) + $0 }
+                        .joined(separator: "\n")
+                    + "\n" + createTabs(2) + "}"
             }
+        } else {
+            finalStr += "\n\n" + createTabs(2) + "public init() {}"
         }
 
         if !r.responseFields.isEmpty {
@@ -496,7 +547,7 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                             .map { createTabs(3) + "/// \(String($0))" }
                             .joined(separator: "\n"),
                         
-                        createTabs(3) + "var \(field.valueName): \(valueType)" + optional
+                        createTabs(3) + "public var \(field.valueName): \(valueType)" + optional
                     ].joined(separator: "\n")
                 }.joined(separator: "\n\n"))
                 \(createTabs(2))}
@@ -649,7 +700,11 @@ func generateEvents(_ events: [OBSEvent]) -> String {
             .joined(separator: "\n")
         
         if !ev.dataFields.isEmpty {
-            finalStr += "\n" + ev.dataFields.map { field -> String in
+            var initParams = [String]()
+            var initBody = [String]()
+            
+            // Data Fields
+            let dataFields = ev.dataFields.map { field -> String in
                 var valueType = mapType(field.valueType, nil)
                 if let range = field.valueDescription.range(of: #"(`\w+`) enum"#, options: .regularExpression) {
                     let substring = String(field.valueDescription[range])
@@ -658,6 +713,9 @@ func generateEvents(_ events: [OBSEvent]) -> String {
                         .replacingOccurrences(of: "Obs", with: "")
                     valueType = "OBSEnums." + substring
                 }
+                
+                initParams.append("\(field.valueName): \(valueType)")
+                initBody.append("self.\(field.valueName) = \(field.valueName)")
                 
                 return [
                     field.valueDescription
@@ -668,16 +726,29 @@ func generateEvents(_ events: [OBSEvent]) -> String {
                         .map { "/// \(String($0))" }
                         .joined(separator: "\n"),
                     
-                    "var \(field.valueName): \(valueType)",
+                    "public var \(field.valueName): \(valueType)",
                 ]
                 .map { createTabs(2) + $0 }
                 .joined(separator: "\n")
-            }.joined(separator: "\n\n") + "\n" + createTabs(1) + "}"
+            }.joined(separator: "\n\n")
+            
+            finalStr += "\n" + dataFields
+            
+            // Public Explicit Init
+            finalStr += "\n\n" + createTabs(2)
+                + "public init("
+                + initParams
+                .joined(separator: ", ")
+                + ") {\n"
+                + initBody
+                .map { createTabs(3) + $0 }
+                .joined(separator: "\n")
+                + "\n" + createTabs(2) + "}"
         } else {
-            finalStr += "}"
+            finalStr += "\n" + createTabs(2) + "public init() {}"
         }
 
-        return finalStr
+        return finalStr + "\n" + createTabs(1) + "}"
     }
     .joined(separator: "\n\n")
     .replacingOccurrences(of: "``", with: "`")
