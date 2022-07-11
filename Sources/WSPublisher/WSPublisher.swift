@@ -100,18 +100,19 @@ extension WebSocketPublisher {
         public var port: Int
         public var password: String?
         
-        //        static func from(urlString: String) -> ConnectionData? {
-        //            let pattern =
-        //                #"ws\:\/\/(?<ip>\d+\.\d+\.\d+\.\d+)\:"# +
-        //                #"(?<port>\d+)\/"# +
-        //                #"(?<pass>\w+)"#
-        //            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
-        //
-        //            let matches = regex.matches(in: urlString, options: [], range: NSRange(urlString)!)
-        //
-        //            // https://www.advancedswift.com/regex-capture-groups/#create-a-nsregularexpression-with-named-capture-groups
-        ////            if let
-        //        }
+        public init?(fromUrl url: URL) {
+            guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                  let scheme = components.scheme,
+                  let ipAddress = components.host,
+                  let port = components.port else { return nil }
+            
+            self.scheme = scheme
+            self.ipAddress = ipAddress
+            self.port = port
+            
+            let path = components.path.replacingOccurrences(of: "/", with: "")
+            self.password = path.isEmpty ? nil : path
+        }
         
         public var urlString: String {
             var str = "\(scheme)://\(ipAddress):\(port)"
