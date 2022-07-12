@@ -83,11 +83,11 @@ extension OBSSessionManager {
             //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
             .flatMap { self.publisherAnyOpCode }
-            .tryFilter { message in
-                // TODO: change return false to throw error with connection process
-                guard case .identified = message.operation else { print("Can't connect"); return false }
-                return true
-            }
+//            .tryFilter { message in
+//                // TODO: change return false to throw error with connection process
+//                guard case .identified = message.operation else { print("Can't connect"); return false }
+//                return true
+//            }
             .tryFlatMap { _ in try self.getInitialData() }
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] in
                 self?.isConnected = true
