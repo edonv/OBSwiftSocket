@@ -54,6 +54,7 @@ extension OBSSessionManager {
         let listenForDisconnect = wsPublisher.publisher
             .tryFilter { event throws -> Bool in
                 guard case .disconnected(let closeCode, let reason) = event else { return false }
+                print("Hit the listenForDisconnect publisher on disconnect.")
                 throw Errors.failedToConnect(closeCode, reason)
             }
         
