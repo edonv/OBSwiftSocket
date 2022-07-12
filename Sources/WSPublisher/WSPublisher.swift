@@ -11,7 +11,7 @@ import Combine
 public class WebSocketPublisher: NSObject {
     public enum Event {
         case connected(_ protocol: String?)
-        case disconnected(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: Data?)
+        case disconnected(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: String?)
         case data(Data)
         case string(String)
         case generic(URLSessionWebSocketTask.Message)
@@ -144,7 +144,8 @@ extension WebSocketPublisher: URLSessionWebSocketDelegate {
     }
     
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        let event = Event.disconnected(closeCode, reason)
+        let reasonStr = reason != nil ? String(data: reason!, encoding: .utf8) : nil
+        let event = Event.disconnected(closeCode, reasonStr)
         print(event)
         _subject.send(event)
     }
