@@ -204,7 +204,6 @@ public extension OBSSessionManager {
 public extension OBSSessionManager {
     var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
         return wsPublisher.publisher
-            .print()
             .compactMap { msg -> UntypedMessage? in
                 switch msg {
 //                case .data(let d):
