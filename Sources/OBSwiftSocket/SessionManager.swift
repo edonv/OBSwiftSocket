@@ -90,7 +90,7 @@ extension OBSSessionManager {
 //                return true
 //            }
             .tryFlatMap { _ in try self.getInitialData() }
-            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] in
+            .sink(receiveCompletion: { print($0) }, receiveValue: { [weak self] in
                 self?.isConnected = true
                 
                 if persistConnectionData {
