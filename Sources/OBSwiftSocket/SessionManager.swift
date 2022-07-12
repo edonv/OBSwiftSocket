@@ -51,8 +51,16 @@ extension OBSSessionManager {
     public func connect(using connectionData: WebSocketPublisher.ConnectionData, persistConnectionData: Bool = true, events: OBSEnums.EventSubscription?) {
         // Set up listeners/publishers before starting connection.
         
+        let listenForDisconnect = wsPublisher.publisher
+            .tryFilter { event throws -> Bool in
+                guard case .disconnected(let closeCode, let reason) = event else { return false }
+                throw Errors.failedToConnect(closeCode, reason)
+            }
+        
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
-        connectionObserver = publisher(forMessageOfType: OpDataTypes.Hello.self)
+        connectionObserver = Publishers.Zip(publisher(forMessageOfType: OpDataTypes.Hello.self),
+                                            listenForDisconnect)
+            .map(\.0)
             
             // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
             
