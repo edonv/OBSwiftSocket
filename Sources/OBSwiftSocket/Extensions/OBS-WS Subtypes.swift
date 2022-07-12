@@ -13,8 +13,8 @@ extension OBSRequests.GetSceneList.Response {
     }
     
     public struct Scene: Codable, Comparable {
-        var sceneIndex: Int
-        var sceneName: String
+        public var sceneIndex: Int
+        public var sceneName: String
         
         public static func < (lhs: Scene, rhs: Scene) -> Bool {
             return lhs.sceneIndex < rhs.sceneIndex
