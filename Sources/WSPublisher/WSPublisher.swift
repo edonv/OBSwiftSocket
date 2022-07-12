@@ -64,8 +64,8 @@ public class WebSocketPublisher: NSObject {
     
     private func startListening() {
         webSocketTask.receiveOnce()
-            .sink(receiveCompletion: { _ in
-                self.startListening()
+            .sink(receiveCompletion: { [weak self] _ in
+                self?.startListening()
             }, receiveValue: { [weak self] message in
                 switch message {
                 case .data(let d):
