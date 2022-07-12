@@ -283,6 +283,7 @@ public extension OBSSessionManager {
 
 internal extension OBSSessionManager {
     enum Errors: Error {
+        case failedToConnect(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: String?)
         case requestResponse(OpDataTypes.RequestResponse.Status)
         case buildingRequest
         case sendingRequest
