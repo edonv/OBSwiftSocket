@@ -137,12 +137,16 @@ extension WebSocketPublisher {
 // https://betterprogramming.pub/websockets-in-swift-using-urlsessions-websockettask-bc372c47a7b3
 extension WebSocketPublisher: URLSessionWebSocketDelegate {
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        _subject.send(.connected(`protocol`))
+        let event = Event.connected(`protocol`)
+        print(event)
+        _subject.send(event)
         startListening()
     }
     
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        _subject.send(.disconnected(closeCode, reason))
+        let event = Event.disconnected(closeCode, reason)
+        print(event)
+        _subject.send(event)
     }
 }
 
