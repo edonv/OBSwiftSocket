@@ -176,9 +176,7 @@ public extension URLSessionWebSocketTask {
     
     func receiveOnce() -> Future<URLSessionWebSocketTask.Message, Error> {
         return Future { promise in
-            self.receive { result in
-                promise(result)
-            }
+            self.receive(completionHandler: promise)
         }
     }
 }
