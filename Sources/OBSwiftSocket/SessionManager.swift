@@ -304,7 +304,11 @@ public extension OBSSessionManager {
 
 internal extension OBSSessionManager {
     enum Errors: Error {
-        case failedToConnect(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: String?)
+        case disconnected(_ closeCode: OBSEnums.CloseCode?, _ reason: String?)
+        
+        /// Thrown during authentication process when OBS requires a password, but the user didn't supply one.
+        case missingPasswordWhereRequired
+        
         case requestResponse(OpDataTypes.RequestResponse.Status)
         case buildingRequest
         case sendingRequest
