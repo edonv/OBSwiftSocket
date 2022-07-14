@@ -21,3 +21,23 @@ extension OBSRequests.GetSceneList.Response {
         }
     }
 }
+
+extension OBSRequests {
+    public enum Subtypes {
+        public struct SceneItem: Codable, Hashable {
+            public var sourceName: String
+            public var sceneItemId: Int
+            /// The kind of input for the item. For `SourceType.sceneOrGroup`, this is `nil`.
+            public var inputKind: String? // Enums.InputKind?
+            public var sourceType: OBSEnums.SourceType
+            public var sceneItemIndex: Int
+            /// For `SourceType.sceneOrGroup`, this dictates if it is a group.
+            /// For `SourceType.input`, this is `nil`.
+            public var isGroup: Bool?
+            
+    //        public var image: UIImage? {
+    //            sourceType.image(isGroup: isGroup, inputKind: inputKind)
+    //        }
+        }
+    }
+}
