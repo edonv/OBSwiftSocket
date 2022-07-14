@@ -22,6 +22,13 @@ extension OBSRequests.GetSceneList.Response {
     }
 }
 
+extension OBSEnums {
+    public enum SourceType: String, Codable {
+        case sceneOrGroup = "OBS_SOURCE_TYPE_SCENE"
+        case input = "OBS_SOURCE_TYPE_INPUT"
+    }
+}
+
 extension OBSRequests {
     public enum Subtypes {
         public struct SceneItem: Codable, Hashable {
