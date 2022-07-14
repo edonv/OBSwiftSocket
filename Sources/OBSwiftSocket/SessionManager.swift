@@ -27,12 +27,23 @@ public final class OBSSessionManager: ObservableObject {
         currentPreviewSceneName ?? currentProgramSceneName
     }
     
-    public var waitUntilConnected: AnyPublisher<Void, Error> {
-        return $isConnected
-            .setFailureType(to: Error.self)
-            .filter { $0 }
-            .map { _ in () }
-            //            .first()
+    public var connectionStatus: AnyPublisher<Bool, Error> {
+        return wsPublisher.publisher
+            .map { event -> Bool? in
+                switch event {
+                case .connected:
+                    return true
+                case .disconnected:
+                    return false
+                default:
+                    return nil
+                }
+            }
+            // On fresh subscription, it'll push latest value.
+            // If it's not .connected/.disconnected, replace with if it's connected
+            .replaceNil(with: isConnected)
+            // Don't push through duplicate values
+            .removeDuplicates()
             .eraseToAnyPublisher()
     }
 }
