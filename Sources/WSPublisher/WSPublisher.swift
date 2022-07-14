@@ -79,6 +79,8 @@ public class WebSocketPublisher: NSObject {
     }
 }
 
+// MARK: - Companion Types
+
 extension WebSocketPublisher {
     /// WebSocket Event
     public enum WSEvent {
