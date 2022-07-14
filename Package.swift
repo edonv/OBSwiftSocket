@@ -48,6 +48,6 @@ let package = Package(
         ),
         .testTarget(
             name: "OBSwiftSocketTests",
-            dependencies: ["OBSwiftSocket", "swift-format"]),
+            dependencies: ["OBSwiftSocket"]),
     ]
 )
