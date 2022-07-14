@@ -75,7 +75,28 @@ public class WebSocketPublisher: NSObject {
                 self?.startListening()
             })
             .store(in: &observers)
+    }
+}
+
+// MARK: - Publishers.WSPublisher: URLSessionWebSocketDelegate
+
+// https://betterprogramming.pub/websockets-in-swift-using-urlsessions-websockettask-bc372c47a7b3
+extension WebSocketPublisher: URLSessionWebSocketDelegate {
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+//        connectionInProgress = true
+        let event = WSEvent.connected(`protocol`)
+//        print("Opened session:", event)
+        _subject.send(event)
+        startListening()
+    }
+    
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        self.clearTaskData()
         
+        let reasonStr = reason != nil ? String(data: reason!, encoding: .utf8) : nil
+        let event = WSEvent.disconnected(closeCode, reasonStr)
+//        print("*2* Closed session:", closeCode.rawValue, reasonStr)
+        _subject.send(event)
     }
 }
 
@@ -133,27 +154,8 @@ extension WebSocketPublisher {
         }
     }
     
-//    enum WSErrors: Error {
-//
-//    }
-}
-
-// MARK: - Publishers.WSPublisher: URLSessionWebSocketDelegate
-
-// https://betterprogramming.pub/websockets-in-swift-using-urlsessions-websockettask-bc372c47a7b3
-extension WebSocketPublisher: URLSessionWebSocketDelegate {
-    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        let event = Event.connected(`protocol`)
-        print(event)
-        _subject.send(event)
-        startListening()
-    }
-    
-    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        let reasonStr = reason != nil ? String(data: reason!, encoding: .utf8) : nil
-        let event = Event.disconnected(closeCode, reasonStr)
-        print(event)
-        _subject.send(event)
+    public enum WSErrors: Error {
+        case noActiveConnection
     }
 }
 
