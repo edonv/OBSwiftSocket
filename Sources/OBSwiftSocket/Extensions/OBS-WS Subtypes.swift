@@ -41,3 +41,9 @@ extension OBSRequests {
         }
     }
 }
+
+extension OBSRequests.GetSceneItemList.Response {
+    public func typedSceneItems() throws -> [OBSRequests.Subtypes.SceneItem] {
+        return try self.sceneItems.map { try $0.toCodable(OBSRequests.Subtypes.SceneItem.self) }
+    }
+}
