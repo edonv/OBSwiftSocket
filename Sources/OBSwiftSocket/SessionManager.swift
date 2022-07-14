@@ -51,6 +51,15 @@ public final class OBSSessionManager: ObservableObject {
 // MARK: - Connections
 
 extension OBSSessionManager {
+    // TODO: Is it necessary for this to return a Bool?
+    @discardableResult
+    public func checkForConnection() throws -> Bool {
+        if !isConnected {
+            throw WebSocketPublisher.WSErrors.noActiveConnection
+        }
+        return wsPublisher.isConnected
+    }
+    
     public func persistConnectionData(_ connectionData: WebSocketPublisher.WSConnectionData) {
         try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
