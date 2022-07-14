@@ -80,7 +80,6 @@ public class WebSocketPublisher: NSObject {
 }
 
 extension WebSocketPublisher {
-    public struct ConnectionData: Codable {
     /// WebSocket Event
     public enum WSEvent {
         case publisherCreated
@@ -92,6 +91,7 @@ extension WebSocketPublisher {
         //    case cancelled
     }
     
+    public struct WSConnectionData: Codable {
         public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?) {
             self.scheme = scheme
             self.ipAddress = ipAddress
