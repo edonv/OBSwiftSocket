@@ -242,7 +242,7 @@ public enum OpDataTypes {
         
 //            func dataTyped<R: OBSRequest>(_ metaType: R.Type) -> R? {
 //                guard let d = data else { return nil }
-//                return OBS.WebSocket.Requests.AllTypes.request(ofType: type, metaType.self, from: d)
+//                return OBSRequests.AllTypes.request(ofType: type, metaType.self, from: d)
 //            }
     }
     
@@ -259,7 +259,7 @@ public enum OpDataTypes {
         //            var data: OBSRequest.ResponseType
         
         struct Status: Codable {
-            /// `result` is `true` if the request resulted in `OBS.WebSocket.Codes.RequestStatus.success` (100). `false` if otherwise.
+            /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100). `false` if otherwise.
             var result: Bool
             var code: OBSEnums.RequestStatus
             /// `comment` may be provided by the server on errors to offer further details on why a request failed.
@@ -275,7 +275,7 @@ public enum OpDataTypes {
         
         //            func dataTyped<R: OBSRequest>() -> R? {
         //                guard let d = data else { return nil }
-        //                return OBS.WebSocket.Requests.AllTypes.request(ofType: type, from: d) as? R
+        //                return OBSRequests.AllTypes.request(ofType: type, from: d) as? R
         //            }
     }
     
