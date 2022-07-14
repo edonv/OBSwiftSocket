@@ -9,8 +9,8 @@ import Foundation
 import Combine
 
 public class WebSocketPublisher: NSObject {
+    public var connectionData: WSConnectionData? = nil
     
-    public var connectionData: ConnectionData? = nil
     private var webSocketTask: URLSessionWebSocketTask! = nil
     
     private let _subject = PassthroughSubject<Event, Error>()
@@ -29,7 +29,7 @@ public class WebSocketPublisher: NSObject {
         return connectionData?.password
     }
     
-    public func connect(using connectionData: ConnectionData) {
+    public func connect(using connectionData: WSConnectionData) {
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
         webSocketTask = session.webSocketTask(with: connectionData.url!)
         

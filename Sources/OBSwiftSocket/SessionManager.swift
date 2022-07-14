@@ -51,15 +51,17 @@ public final class OBSSessionManager: ObservableObject {
 // MARK: - Connections
 
 extension OBSSessionManager {
-    public func persistConnectionData(_ connectionData: WebSocketPublisher.ConnectionData) {
+    public func persistConnectionData(_ connectionData: WebSocketPublisher.WSConnectionData) {
         try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
     
-    public func loadConnectionData() -> WebSocketPublisher.ConnectionData? {
-        return try? UserDefaults.standard.decodable(WebSocketPublisher.ConnectionData.self, forKey: .connectionData)
+    public func loadConnectionData() -> WebSocketPublisher.WSConnectionData? {
+        return try? UserDefaults.standard.decodable(WebSocketPublisher.WSConnectionData.self, forKey: .connectionData)
     }
     
-    public func connect(using connectionData: WebSocketPublisher.ConnectionData, persistConnectionData: Bool = true, events: OBSEnums.EventSubscription?) {
+    public func connect(using connectionData: WebSocketPublisher.WSConnectionData,
+                        persistConnectionData: Bool = true,
+                        events: OBSEnums.EventSubscription?) {
         // Set up listeners/publishers before starting connection.
         
         let listenForDisconnect = wsPublisher.publisher
