@@ -15,7 +15,7 @@ public final class OBSSessionManager: ObservableObject {
     }
     
     public var wsPublisher: WebSocketPublisher
-    var observers = Set<AnyCancellable>()
+    private var observers = Set<AnyCancellable>()
     
     var connectionObserver: AnyCancellable? = nil
     @Published public var isConnected: Bool = false
