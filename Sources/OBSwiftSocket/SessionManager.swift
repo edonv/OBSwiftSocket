@@ -314,5 +314,17 @@ internal extension OBSSessionManager {
         case sendingRequest
         case weakSelfNil
         case failedEventTypeConversion
+        
+        public var errorMessage: String? {
+            switch self {
+            case .disconnected(_, let reason):
+                return reason ?? "Connection has been closed"
+            case .missingPasswordWhereRequired:
+                return "Password is required by server"
+                
+            default:
+                return nil
+            }
+        }
     }
 }
