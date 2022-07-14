@@ -9,14 +9,6 @@ import Foundation
 import Combine
 
 public class WebSocketPublisher: NSObject {
-    public enum Event {
-        case connected(_ protocol: String?)
-        case disconnected(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: String?)
-        case data(Data)
-        case string(String)
-        case generic(URLSessionWebSocketTask.Message)
-        //    case cancelled
-    }
     
     public var connectionData: ConnectionData? = nil
     private var webSocketTask: URLSessionWebSocketTask! = nil
@@ -89,6 +81,17 @@ public class WebSocketPublisher: NSObject {
 
 extension WebSocketPublisher {
     public struct ConnectionData: Codable {
+    /// WebSocket Event
+    public enum WSEvent {
+        case publisherCreated
+        case connected(_ protocol: String?)
+        case disconnected(_ closeCode: URLSessionWebSocketTask.CloseCode, _ reason: String?)
+        case data(Data)
+        case string(String)
+        case generic(URLSessionWebSocketTask.Message)
+        //    case cancelled
+    }
+    
         public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?) {
             self.scheme = scheme
             self.ipAddress = ipAddress
