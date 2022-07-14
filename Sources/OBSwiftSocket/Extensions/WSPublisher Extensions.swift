@@ -15,9 +15,10 @@ extension WebSocketPublisher {
     /// Sending Encodable Objects
     /// - Parameter object: <#object description#>
     /// - Returns: <#description#>
-    func send<T: Encodable>(_ object: T) -> Future<Void, Error> {
+    func send<T: Encodable>(_ object: T) -> AnyPublisher<Void, Error> {
         guard let json = JSONEncoder.toString(from: object) else {
-            return Future { $0(.failure(JSONErrors.failedToEncodeObject)) }
+            return Fail(error: JSONErrors.failedToEncodeObject)
+                .eraseToAnyPublisher()
         }
         return send(json)
     }
