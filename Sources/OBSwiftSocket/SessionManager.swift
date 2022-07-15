@@ -228,6 +228,17 @@ public extension OBSSessionManager {
 public extension OBSSessionManager {
     var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
         return wsPublisher.publisher
+            .tryFilter { event throws -> Bool in
+                switch event {
+                case .disconnected(let wsCloseCode, let reason):
+                    let obsCloseCode = OBSEnums.CloseCode(rawValue: wsCloseCode.rawValue)
+                    throw Errors.disconnected(obsCloseCode, reason)
+                    
+                default:
+                    // Filters through if the publisher is connected
+                    return self.wsPublisher.isConnected
+                }
+            }
             .compactMap { msg -> UntypedMessage? in
                 switch msg {
 //                case .data(let d):
