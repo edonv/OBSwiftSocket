@@ -306,6 +306,8 @@ public extension OBSSessionManager {
 
 public extension OBSSessionManager {
     func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
+        try checkForConnection()
+        
         let pub = publisher(forAllMessagesOfType: OpDataTypes.Event.self)
             .filter { $0.type == eventType }
         
@@ -333,6 +335,8 @@ public extension OBSSessionManager {
     /// - Throws: <#description#>
     /// - Returns: <#description#>
     func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
+        try checkForConnection()
+        
         let pubs = types.map { t in
             publisher(forAllMessagesOfType: OpDataTypes.Event.self)
                 .filter { $0.type == t }
