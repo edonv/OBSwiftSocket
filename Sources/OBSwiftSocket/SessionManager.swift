@@ -198,8 +198,8 @@ public extension OBSSessionManager {
                     return self.wsPublisher.isConnected
                 }
             }
-            .compactMap { msg -> UntypedMessage? in
-                switch msg {
+            .compactMap { event -> UntypedMessage? in
+                switch event {
                 case .data(let d):
                     // TODO: MsgPack? does this work?
                     return try? MessagePackDecoder().decode(UntypedMessage.self, from: d)
