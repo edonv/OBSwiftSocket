@@ -17,7 +17,10 @@ public final class OBSSessionManager: ObservableObject {
     public var wsPublisher: WebSocketPublisher
     private var observers = Set<AnyCancellable>()
     
-    @Published public var isConnected: Bool = false
+    public var isConnected: Bool {
+        wsPublisher.isConnected
+    }
+    
     @Published var isStudioModeEnabled: Bool = false
     @Published var currentProgramSceneName: String! = nil
     @Published var currentPreviewSceneName: String? = nil
