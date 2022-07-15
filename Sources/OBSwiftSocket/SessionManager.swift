@@ -273,6 +273,15 @@ public extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    /// Creates a `Publisher` that publishes the first `OBSOpData` message of the provided type. It completes after the first message.
+    /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
+    /// - Returns: A `Publisher` that publishes the first `OBSOpData` message of the provided type.
+    func publisher<Op: OBSOpData>(forFirstMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
+        return publisher(forAllMessagesOfType: type)
+            .first() // Finishes the stream after allowing 1 of the correct type through
+            .eraseToAnyPublisher()
+    }
+    
     func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         return publisher(forMessageOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
