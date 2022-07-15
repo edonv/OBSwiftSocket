@@ -115,8 +115,9 @@ extension OBSSessionManager {
 //                    print("Success:", result)
 //                    self?.isConnected = true
                     
-                    if persistConnectionData {
-                        self?.persistConnectionData(connectionData)
+                    if persistConnectionData,
+                       let data = self?.connectionData {
+                        self?.persistConnectionData(data)
                     }
                     try? self?.addObservers()
                     
