@@ -84,7 +84,7 @@ extension OBSSessionManager {
                         events: OBSEnums.EventSubscription?) -> AnyPublisher<Void, Error> {
         // Set up listeners/publishers before starting connection.
         defer {
-            wsPublisher.connect(using: connectionData)
+            wsPublisher.connect(with: connectionData.urlRequest!)
         }
         
         
