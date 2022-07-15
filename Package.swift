@@ -27,14 +27,18 @@ let package = Package(
             .upToNextMinor(from: "0.50300.0")),
         .package(name: "JSONValue",
             url: "https://github.com/edonv/JSONValue.git",
-            .branch("main"))
+            .branch("main")),
+        .package(
+            name: "MessagePacker",
+            url: "https://github.com/hirotakan/MessagePacker.git",
+            .upToNextMajor(from: "0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "OBSwiftSocket",
-            dependencies: ["JSONValue", "WSPublisher"]
+            dependencies: ["JSONValue", "WSPublisher", "MessagePacker"]
         ),
         .target(
             name: "WSPublisher"
