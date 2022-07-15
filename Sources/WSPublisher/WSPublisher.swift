@@ -40,6 +40,15 @@ public class WebSocketPublisher: NSObject {
     public func disconnect(with closeCode: URLSessionWebSocketTask.CloseCode? = nil, reason: String? = nil) {
         webSocketTask?.cancel(with: closeCode ?? .normalClosure,
                              reason: (reason ?? "Closing connection").data(using: .utf8))
+        clearTaskData()
+    }
+    
+    private func clearTaskData() {
+        webSocketTask = nil
+        connectionData = nil
+        observers.forEach { $0.cancel() }
+        print("Task data cleared")
+    }
     }
     
     public func send(_ message: String) -> Future<Void, Error> {
@@ -93,7 +102,7 @@ extension WebSocketPublisher: URLSessionWebSocketDelegate {
     }
     
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        self.clearTaskData()
+        clearTaskData()
         
         let reasonStr = reason != nil ? String(data: reason!, encoding: .utf8) : nil
         let event = WSEvent.disconnected(closeCode, reasonStr)
