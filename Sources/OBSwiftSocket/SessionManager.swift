@@ -102,7 +102,7 @@ extension OBSSessionManager {
                 Message<OpDataTypes.Identify>.wrap(data: data)
             }
             .delay(for: .seconds(1), scheduler: DispatchQueue.main)
-            .flatMap { self.wsPublisher.send($0) }
+            .flatMap { self.wsPublisher.send($0, encodingMode: self.encodingProtocol) }
             
             // - The server receives and processes the `Identify` sent by the client.
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
@@ -266,7 +266,7 @@ public extension OBSSessionManager {
         }
         
         let msg = Message<OpDataTypes.Request>(data: body)
-        return wsPublisher.send(msg)
+        return wsPublisher.send(msg, encodingMode: self.encodingProtocol)
             .flatMap { self.publisher(forResponseTo: request, withID: msg.data.id) }
             .eraseToAnyPublisher()
     }
@@ -280,7 +280,7 @@ public extension OBSSessionManager {
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         let msgToSend = Message<OpDataTypes.RequestBatch>(data: msgBodyToSend)
         
-        return wsPublisher.send(msgToSend)
+        return wsPublisher.send(msgToSend, encodingMode: self.encodingProtocol)
             .flatMap { self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self) }
             .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
             .first() // Finishes the stream after allowing 1 of the correct type through
