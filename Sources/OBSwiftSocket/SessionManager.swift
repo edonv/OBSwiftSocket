@@ -397,6 +397,13 @@ extension OBSSessionManager {
             guard let url = self.url else { return nil }
             return URLRequest(url: url)
         }
+        
+        public enum MessageEncoding: String, Codable {
+            /// JSON over text frames
+            case json = "obswebsocket.json"
+            /// MsgPack over binary frames
+            case msgPack = "obswebsocket.msgpack"
+        }
     }
 }
 
