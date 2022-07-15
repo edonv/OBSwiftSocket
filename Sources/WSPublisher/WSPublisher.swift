@@ -12,14 +12,13 @@ public class WebSocketPublisher: NSObject {
     public var connectionData: WSConnectionData? = nil
     
     private var webSocketTask: URLSessionWebSocketTask? = nil
+    private var observers = Set<AnyCancellable>()
+    private let _subject = CurrentValueSubject<WSEvent, Error>(.publisherCreated)
     
-    private let _subject = PassthroughSubject<Event, Error>()
-    
-    public var publisher: AnyPublisher<Event, Error> {
+    public var publisher: AnyPublisher<WSEvent, Error> {
         _subject.eraseToAnyPublisher()
     }
     
-    private var observers = Set<AnyCancellable>()
     
     public override init() {
         super.init()
