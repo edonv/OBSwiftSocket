@@ -84,8 +84,12 @@ public class WebSocketPublisher: NSObject {
         
         task.receiveOnce()
             .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { _ in },
-                  receiveValue: { [weak self] message in
+            .sink(receiveCompletion: { [weak self] result in
+//                print("*1* Stopped listening:", result)
+                guard case .finished = result else { return }
+                self?.startListening()
+            }, receiveValue: { [weak self] message in
+//                print("Received message:", message)
                 switch message {
                 case .data(let d):
                     self?._subject.send(.data(d))
@@ -98,8 +102,6 @@ public class WebSocketPublisher: NSObject {
                 @unknown default:
                     self?._subject.send(.generic(message))
                 }
-                
-                self?.startListening()
             })
             .store(in: &observers)
     }
