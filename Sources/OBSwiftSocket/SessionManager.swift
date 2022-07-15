@@ -149,7 +149,7 @@ extension OBSSessionManager {
     }
     
     private func addObservers() throws {
-        try listenForEvent(OBSEvents.StudioModeStateChanged.self)
+        try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
             .map(\.studioModeEnabled)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] isStudioModeEnabled in
                 self?.currentPreviewSceneName = isStudioModeEnabled ? self?.currentProgramSceneName : nil
@@ -157,13 +157,13 @@ extension OBSSessionManager {
             })
             .store(in: &observers)
         
-        try listenForEvent(OBSEvents.CurrentProgramSceneChanged.self)
+        try listenForEvent(OBSEvents.CurrentProgramSceneChanged.self, firstOnly: false)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newProgramSceneName in
                 self?.currentProgramSceneName = newProgramSceneName
             }).store(in: &observers)
         
-        try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self)
+        try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self, firstOnly: false)
             .map(\.sceneName)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newPreviewSceneName in
                 self?.currentPreviewSceneName = newPreviewSceneName
@@ -305,17 +305,25 @@ public extension OBSSessionManager {
 // MARK: - Listening for OBSEvents
 
 public extension OBSSessionManager {
-    func listenForEvent(_ eventType: OBSEvents.AllTypes) throws -> AnyPublisher<OBSEvent, Error> {
-        return waitUntilConnected
-            .flatMap { _ in self.publisher(forMessageOfType: OpDataTypes.Event.self) }
+    func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
+        let pub = publisher(forAllMessagesOfType: OpDataTypes.Event.self)
             .filter { $0.type == eventType }
-            .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
-            .eraseToAnyPublisher()
+        
+        if firstOnly {
+            return pub
+                .first() // Finishes the stream after allowing 1 of the correct type through
+                .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
+                .eraseToAnyPublisher()
+        } else { // .continuously
+            return pub
+                .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
+                .eraseToAnyPublisher()
+        }
     }
     
-    func listenForEvent<E: OBSEvent>(_ eventType: E.Type) throws -> AnyPublisher<E, Error> {
+    func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
         guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion }
-        return try listenForEvent(type)
+        return try listenForEvent(type, firstOnly: firstOnly)
             .compactMap { $0 as? E }
             .eraseToAnyPublisher()
     }
