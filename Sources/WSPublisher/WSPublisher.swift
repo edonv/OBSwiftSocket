@@ -11,7 +11,7 @@ import Combine
 public class WebSocketPublisher: NSObject {
     public var connectionData: WSConnectionData? = nil
     
-    private var webSocketTask: URLSessionWebSocketTask! = nil
+    private var webSocketTask: URLSessionWebSocketTask? = nil
     
     private let _subject = PassthroughSubject<Event, Error>()
     
@@ -33,12 +33,12 @@ public class WebSocketPublisher: NSObject {
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
         webSocketTask = session.webSocketTask(with: connectionData.url!)
         
-        webSocketTask.resume()
+        webSocketTask?.resume()
         self.connectionData = connectionData
     }
     
     public func disconnect(with closeCode: URLSessionWebSocketTask.CloseCode? = nil, reason: String? = nil) {
-        webSocketTask.cancel(with: closeCode ?? .normalClosure,
+        webSocketTask?.cancel(with: closeCode ?? .normalClosure,
                              reason: (reason ?? "Closing connection").data(using: .utf8))
     }
     
@@ -55,7 +55,9 @@ public class WebSocketPublisher: NSObject {
     }
     
     private func startListening() {
-        webSocketTask.receiveOnce()
+        guard let task = webSocketTask else { return }
+        
+        task.receiveOnce()
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { _ in },
                   receiveValue: { [weak self] message in
