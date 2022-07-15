@@ -187,6 +187,12 @@ public extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    /// <#Description#>
+    /// - Parameters:
+    ///   - executionType: <#executionType description#>
+    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests` must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched up with their responses in the returned `Dictionary`.
+    /// - Throws: If `wsPublisher` is not currently connected, a `WebSocketPublisher.WSErrors.noActiveConnection` error will be thrown.
+    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                          requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
         //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
