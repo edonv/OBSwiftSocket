@@ -148,15 +148,6 @@ extension OBSSessionManager {
     }
     
     private func addObservers() throws {
-        // Observe to keep isConnected updated
-        wsPublisher.publisher
-            .filter { event -> Bool in
-                guard case .disconnected(_, _) = event else { return false }
-                return true
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in self.isConnected = false })
-            .store(in: &observers)
-        
         try listenForEvent(OBSEvents.StudioModeStateChanged.self)
             .map(\.studioModeEnabled)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] isStudioModeEnabled in
