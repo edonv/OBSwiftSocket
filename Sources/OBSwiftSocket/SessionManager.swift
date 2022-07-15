@@ -350,6 +350,8 @@ public extension OBSSessionManager {
 
 extension OBSSessionManager {
     public struct ConnectionData: Codable {
+        static let encodingProtocolHeaderKey = "Sec-WebSocket-Protocol"
+        
         public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?, encodingProtocol: MessageEncoding = .json) {
             self.scheme = scheme
             self.ipAddress = ipAddress
@@ -381,6 +383,11 @@ extension OBSSessionManager {
             
             let path = components.path.replacingOccurrences(of: "/", with: "")
             self.password = path.isEmpty ? nil : path
+            
+            if let encodingStr = request.value(forHTTPHeaderField: Self.encodingProtocolHeaderKey),
+               let encoding = MessageEncoding(rawValue: encodingStr) {
+                self.encodingProtocol = encoding
+            }
         }
         
         public var urlString: String {
@@ -397,7 +404,12 @@ extension OBSSessionManager {
         
         public var urlRequest: URLRequest? {
             guard let url = self.url else { return nil }
-            return URLRequest(url: url)
+            var req = URLRequest(url: url)
+            
+            if let encoding = self.encodingProtocol {
+                req.addValue(encoding.rawValue, forHTTPHeaderField: Self.encodingProtocolHeaderKey)
+            }
+            return req
         }
         
         public enum MessageEncoding: String, Codable {
