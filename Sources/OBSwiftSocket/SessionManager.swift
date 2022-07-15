@@ -122,22 +122,22 @@ extension OBSSessionManager {
     
     public func getInitialData() throws -> AnyPublisher<Void, Error> {
         // Uses direct calls to `wsPub.sendRequest` because local one would be waiting until connected
-        let studioModeReq = sendRequest(OBSRequests.GetStudioModeEnabled())
+        let studioModeReq = try sendRequest(OBSRequests.GetStudioModeEnabled())
             .map(\.studioModeEnabled)
             .handleEvents(receiveOutput: { [weak self] isStudioModeEnabled in
                 self?.isStudioModeEnabled = isStudioModeEnabled
             })
-            .flatMap { isStudioModeEnabled -> AnyPublisher<Void, Error> in
+            .tryFlatMap { isStudioModeEnabled -> AnyPublisher<Void, Error> in
                 guard isStudioModeEnabled else { return Future(withValue: ()).eraseToAnyPublisher() }
                 
-                return self.sendRequest(OBSRequests.GetCurrentPreviewScene())
+                return try self.sendRequest(OBSRequests.GetCurrentPreviewScene())
                     .map(\.currentPreviewSceneName)
                     .handleEvents(receiveOutput: { [weak self] currentPreviewScene in
                         self?.currentPreviewSceneName = currentPreviewScene
                     }).asVoid()
             }.asVoid()
         
-        let currentProgramReq = self.sendRequest(OBSRequests.GetCurrentProgramScene())
+        let currentProgramReq = try self.sendRequest(OBSRequests.GetCurrentProgramScene())
             .map(\.currentProgramSceneName)
             .handleEvents(receiveOutput: { [weak self] currentProgramScene in
                 self?.currentProgramSceneName = currentProgramScene
@@ -173,7 +173,8 @@ extension OBSSessionManager {
 // MARK: - Sending Requests
 
 public extension OBSSessionManager {
-    func sendRequest<R: OBSRequest>(_ request: R) -> AnyPublisher<R.ResponseType, Error> {
+    func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
+        try checkForConnection()
         guard let type = request.typeEnum,
               let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
             return Future { $0(.failure(Errors.buildingRequest)) }
@@ -187,17 +188,17 @@ public extension OBSSessionManager {
     }
     
     func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                         requests: [String: R]) -> AnyPublisher<[String: R.ResponseType], Error> {
+                                         requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
         //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
         
-        return sendRequestBatch(executionType: executionType,
-                                requests: requests.map { (id, req) -> OpDataTypes.RequestBatch.Request? in
-                                    return OpDataTypes.Request(
-                                        type: req.typeEnum!,
-                                        id: id,
-                                        request: req
-                                    )?.forBatch()
-                                })
+        return try sendRequestBatch(executionType: executionType,
+                                    requests: requests.map { (id, req) -> OpDataTypes.RequestBatch.Request? in
+                                        return OpDataTypes.Request(
+                                            type: req.typeEnum!,
+                                            id: id,
+                                            request: req
+                                        )?.forBatch()
+                                    })
             .map { respDict in
                 respDict.compactMapValues { $0 as? R.ResponseType }
             }
@@ -205,9 +206,10 @@ public extension OBSSessionManager {
     }
     
     func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                          requests: [OpDataTypes.RequestBatch.Request?]) -> AnyPublisher<[String: OBSRequestResponse], Error> {
         let msgBody = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         let msg = Message<OpDataTypes.RequestBatch>(data: msgBody)
+                          requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
+        try checkForConnection()
         
         return wsPublisher.send(msg)
             .flatMap { self.publisher(forMessageOfType: OpDataTypes.RequestBatchResponse.self) }
