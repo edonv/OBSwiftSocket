@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 public class WebSocketPublisher: NSObject {
-    public var connectionData: WSConnectionData? = nil
+    public var urlRequest: URLRequest? = nil
     
     private var webSocketTask: URLSessionWebSocketTask? = nil
     private var observers = Set<AnyCancellable>()
@@ -33,12 +33,16 @@ public class WebSocketPublisher: NSObject {
         return connectionData?.password
     }
     
-    public func connect(using connectionData: WSConnectionData) {
+    public func connect(with request: URLRequest) {
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
-        webSocketTask = session.webSocketTask(with: connectionData.url!)
+        webSocketTask = session.webSocketTask(with: request)
         
         webSocketTask?.resume()
-        self.connectionData = connectionData
+        self.urlRequest = request
+    }
+    
+    public func connect(with url: URL) {
+        connect(with: URLRequest(url: url))
     }
     
     public func disconnect(with closeCode: URLSessionWebSocketTask.CloseCode? = nil, reason: String? = nil) {
@@ -49,7 +53,7 @@ public class WebSocketPublisher: NSObject {
     
     private func clearTaskData() {
         webSocketTask = nil
-        connectionData = nil
+        urlRequest = nil
         observers.forEach { $0.cancel() }
         print("Task data cleared")
     }
