@@ -72,12 +72,12 @@ extension OBSSessionManager {
         return wsPublisher.isConnected
     }
     
-    public func persistConnectionData(_ connectionData: WebSocketPublisher.WSConnectionData) {
+    public func persistConnectionData(_ connectionData: ConnectionData) {
         try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
     
-    public func loadConnectionData() -> WebSocketPublisher.WSConnectionData? {
-        return try? UserDefaults.standard.decodable(WebSocketPublisher.WSConnectionData.self, forKey: .connectionData)
+    public func loadConnectionData() -> ConnectionData? {
+        return try? UserDefaults.standard.decodable(ConnectionData.self, forKey: .connectionData)
     }
     
     public func connect(using connectionData: WebSocketPublisher.WSConnectionData,
