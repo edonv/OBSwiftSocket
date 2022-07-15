@@ -49,18 +49,34 @@ public class WebSocketPublisher: NSObject {
         observers.forEach { $0.cancel() }
         print("Task data cleared")
     }
+    
+    private func send(_ message: URLSessionWebSocketTask.Message) -> AnyPublisher<Void, Error> {
+        guard let task = webSocketTask else {
+            return Fail(error: WSErrors.noActiveConnection)
+                .eraseToAnyPublisher()
+        }
+        
+        return task.send(message)
+//            .mapError { $0 as! WSErrors }
+            .eraseToAnyPublisher()
     }
     
-    public func send(_ message: String) -> Future<Void, Error> {
-        return webSocketTask.send(.string(message))
+    public func send(_ message: String) -> AnyPublisher<Void, Error> {
+        return send(.string(message))
     }
     
-    public func send(_ message: Data) -> Future<Void, Error> {
-        return webSocketTask.send(.data(message))
+    public func send(_ message: Data) -> AnyPublisher<Void, Error> {
+        return send(.data(message))
     }
     
-    public func ping() -> Future<Void, Error> {
-        return webSocketTask.sendPing()
+    public func ping() -> AnyPublisher<Void, Error> {
+        guard let task = webSocketTask else {
+            return Fail(error: WSErrors.noActiveConnection)
+                .eraseToAnyPublisher()
+        }
+        
+        return task.sendPing()
+            .eraseToAnyPublisher()
     }
     
     private func startListening() {
