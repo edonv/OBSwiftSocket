@@ -299,7 +299,7 @@ public extension OBSSessionManager {
     }
 }
 
-// MARK: - Listening for Events
+// MARK: - Listening for OBSEvents
 
 public extension OBSSessionManager {
     func listenForEvent(_ eventType: OBSEvents.AllTypes) throws -> AnyPublisher<OBSEvent, Error> {
