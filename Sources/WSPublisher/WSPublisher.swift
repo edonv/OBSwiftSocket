@@ -147,46 +147,6 @@ extension WebSocketPublisher {
         //    case cancelled
     }
     
-    public struct WSConnectionData: Codable {
-        public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?) {
-            self.scheme = scheme
-            self.ipAddress = ipAddress
-            self.port = port
-            self.password = password
-        }
-        
-        public var scheme: String = "ws"
-        public var ipAddress: String
-        public var port: Int
-        public var password: String?
-        
-        public init?(fromUrl url: URL) {
-            guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                  let scheme = components.scheme,
-                  let ipAddress = components.host,
-                  let port = components.port else { return nil }
-            
-            self.scheme = scheme
-            self.ipAddress = ipAddress
-            self.port = port
-            
-            let path = components.path.replacingOccurrences(of: "/", with: "")
-            self.password = path.isEmpty ? nil : path
-        }
-        
-        public var urlString: String {
-            var str = "\(scheme)://\(ipAddress):\(port)"
-            if let pass = password, !pass.isEmpty {
-                str += "/\(pass)"
-            }
-            return str
-        }
-        
-        public var url: URL? {
-            return URL(string: urlString)
-        }
-    }
-    
     public enum WSErrors: Error {
         case noActiveConnection
     }
