@@ -285,7 +285,7 @@ public extension OBSSessionManager {
     }
     
     func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
-        return publisher(forMessageOfType: OpDataTypes.RequestResponse.self)
+        return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
                 // code == 100
                 guard resp.status.result else { throw Errors.requestResponse(resp.status) }
@@ -330,7 +330,7 @@ public extension OBSSessionManager {
     
     func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         let pubs = types.map { t in
-            publisher(forMessageOfType: OpDataTypes.Event.self)
+            publisher(forAllMessagesOfType: OpDataTypes.Event.self)
                 .filter { $0.type == t }
                 .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
             //                .eraseToAnyPublisher()
