@@ -177,7 +177,7 @@ public extension OBSSessionManager {
         try checkForConnection()
         guard let type = request.typeEnum,
               let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
-            return Future { $0(.failure(Errors.buildingRequest)) }
+            return Fail(error: Errors.buildingRequest)
                 .eraseToAnyPublisher()
         }
         
