@@ -19,6 +19,11 @@ public class WebSocketPublisher: NSObject {
         _subject.eraseToAnyPublisher()
     }
     
+    public var isConnected: Bool {
+        get {
+            webSocketTask != nil
+        }
+    }
     
     public override init() {
         super.init()
