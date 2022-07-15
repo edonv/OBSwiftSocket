@@ -363,7 +363,11 @@ extension OBSSessionManager {
         public var password: String?
         
         public init?(fromUrl url: URL) {
-            guard let url = url,
+            self.init(fromUrlRequest: URLRequest(url: url))
+        }
+        
+        public init?(fromUrlRequest request: URLRequest) {
+            guard let url = request.url,
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                   let scheme = components.scheme,
                   let ipAddress = components.host,
@@ -387,6 +391,11 @@ extension OBSSessionManager {
         
         public var url: URL? {
             return URL(string: urlString)
+        }
+        
+        public var urlRequest: URLRequest? {
+            guard let url = self.url else { return nil }
+            return URLRequest(url: url)
         }
     }
 }
