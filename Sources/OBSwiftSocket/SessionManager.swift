@@ -224,6 +224,7 @@ public extension OBSSessionManager {
         return wsPublisher.send(msgToSend)
             .flatMap { self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self) }
             .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
+            .first() // Finishes the stream after allowing 1 of the correct type through
             .tryMap { try $0.mapResults() }
             .eraseToAnyPublisher()
     }
