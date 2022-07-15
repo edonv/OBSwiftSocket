@@ -29,10 +29,6 @@ public class WebSocketPublisher: NSObject {
         super.init()
     }
     
-    public var password: String? {
-        return connectionData?.password
-    }
-    
     public func connect(with request: URLRequest) {
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
         webSocketTask = session.webSocketTask(with: request)
