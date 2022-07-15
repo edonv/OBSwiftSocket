@@ -17,7 +17,6 @@ public final class OBSSessionManager: ObservableObject {
     public var wsPublisher: WebSocketPublisher
     private var observers = Set<AnyCancellable>()
     
-    var connectionObserver: AnyCancellable? = nil
     @Published public var isConnected: Bool = false
     @Published var isStudioModeEnabled: Bool = false
     @Published var currentProgramSceneName: String! = nil
@@ -70,59 +69,52 @@ extension OBSSessionManager {
     
     public func connect(using connectionData: WebSocketPublisher.WSConnectionData,
                         persistConnectionData: Bool = true,
-                        events: OBSEnums.EventSubscription?) {
+                        events: OBSEnums.EventSubscription?) -> AnyPublisher<Void, Error> {
         // Set up listeners/publishers before starting connection.
+        defer {
+            wsPublisher.connect(using: connectionData)
+        }
         
-        let listenForDisconnect = wsPublisher.publisher
-            .tryFilter { event throws -> Bool in
-                guard case .disconnected(let closeCode, let reason) = event else { return false }
-                print("Hit the listenForDisconnect publisher on disconnect.")
-                throw Errors.failedToConnect(closeCode, reason)
-            }
         
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
-        connectionObserver = Publishers.Zip(publisher(forMessageOfType: OpDataTypes.Hello.self),
-                                            listenForDisconnect)
-            .map(\.0)
+        return wsPublisher.publisher
             
             // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
             
             //   - If there is an `authentication` field in the `messageData` object, the server requires authentication, and the steps in Creating an authentication string should be followed.
             //   - If there is no `authentication` field, the resulting `Identify` object sent to the server does not require an authentication string.
             //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
-            .compactMap { data in
-                // TODO: replace return nil with throwing a connection error
-                guard let pass = self.wsPublisher.password else { return nil }
-                return data.toIdentify(password: pass)
-            }
+            .tryCompactMap { try $0.toIdentify(password: self.wsPublisher.password) }
             .map { data -> Message<OpDataTypes.Identify> in
                 Message<OpDataTypes.Identify>.wrap(data: data)
             }
+            .delay(for: .seconds(1), scheduler: DispatchQueue.main)
             .flatMap { self.wsPublisher.send($0) }
             
             // - The server receives and processes the `Identify` sent by the client.
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
             //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
-//            .flatMap { self.publisherAnyOpCode }
             .flatMap { self.publisher(forMessageOfType: OpDataTypes.Identified.self) }
-//            .tryFilter { message in
-//                // TODO: change return false to throw error with connection process
-//                guard case .identified = message.operation else { print("Can't connect"); return false }
-//                return true
-//            }
             .tryFlatMap { _ in try self.getInitialData() }
-            .sink(receiveCompletion: { print($0) }, receiveValue: { [weak self] in
-                self?.isConnected = true
-                
-                if persistConnectionData {
-                    self?.persistConnectionData(connectionData)
+            .handleEvents(receiveCompletion: { [weak self] result in
+                switch result {
+                case .finished:
+//                    print("Success:", result)
+//                    self?.isConnected = true
+                    
+                    if persistConnectionData {
+                        self?.persistConnectionData(connectionData)
+                    }
+                    try? self?.addObservers()
+                    
+                case .failure(let err):
+//                    print("*3* Failure to connect:", err)
+//                    self?.isConnected = false
+                    self?.wsPublisher.disconnect()
                 }
-                self?.connectionObserver?.cancel()
-                try? self?.addObservers()
             })
-        
-        wsPublisher.connect(using: connectionData)
+            .eraseToAnyPublisher()
     }
     
     public func getInitialData() throws -> AnyPublisher<Void, Error> {
