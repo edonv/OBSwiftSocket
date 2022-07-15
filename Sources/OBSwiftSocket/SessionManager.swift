@@ -297,6 +297,7 @@ public extension OBSSessionManager {
             .map(\.data)
             .replaceNil(with: .emptyObject)
             .tryCompactMap { try $0.toCodable(req.type.ResponseType.self) }
+            .first() // Finishes the stream after allowing 1 of the correct type through
             .eraseToAnyPublisher()
     }
 }
