@@ -222,3 +222,16 @@ public extension URLSessionWebSocketTask {
         }
     }
 }
+
+extension URLSessionWebSocketTask.Message {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.data(let sentData), .data(let dataToSend)):
+            return sentData == dataToSend
+        case (.string(let sentStr), .string(let strToSend)):
+            return sentStr == strToSend
+        default:
+            return false
+        }
+    }
+}
