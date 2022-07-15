@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import WSPublisher
+import MessagePacker
 
 public final class OBSSessionManager: ObservableObject {
     public init(connectionData: ConnectionData) {
@@ -199,9 +200,9 @@ public extension OBSSessionManager {
             }
             .compactMap { msg -> UntypedMessage? in
                 switch msg {
-//                case .data(let d):
-                    // MsgPack?
-//                    return nil
+                case .data(let d):
+                    // TODO: MsgPack? does this work?
+                    return try? MessagePackDecoder().decode(UntypedMessage.self, from: d)
                 case .string(let str):
                     return try? JSONDecoder.decode(UntypedMessage.self, from: str)
                 default:
