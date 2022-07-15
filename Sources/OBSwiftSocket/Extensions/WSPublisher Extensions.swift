@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import WSPublisher
+import MessagePacker
 
 // MARK: - Send Encodable Objects
 
@@ -15,12 +16,23 @@ extension WebSocketPublisher {
     /// Sending Encodable Objects
     /// - Parameter object: <#object description#>
     /// - Returns: <#description#>
-    func send<T: Encodable>(_ object: T) -> AnyPublisher<Void, Error> {
-        guard let json = JSONEncoder.toString(from: object) else {
-            return Fail(error: JSONErrors.failedToEncodeObject)
-                .eraseToAnyPublisher()
+    func send<T: Encodable>(_ object: T,
+                            encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) -> AnyPublisher<Void, Error> {
+        switch encodingMode {
+        case .json:
+            guard let json = JSONEncoder.toString(from: object) else {
+                return Fail(error: CodingErrors.failedToEncodeObject(.json))
+                    .eraseToAnyPublisher()
+            }
+            return send(json)
+        
+        case .msgPack:
+            guard let msgData = try? MessagePackEncoder().encode(object) else {
+                return Fail(error: CodingErrors.failedToEncodeObject(.msgPack))
+                    .eraseToAnyPublisher()
+            }
+            return send(msgData)
         }
-        return send(json)
     }
 }
 
