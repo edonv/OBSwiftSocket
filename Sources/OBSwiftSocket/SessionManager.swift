@@ -263,7 +263,10 @@ public extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    func publisher<Op: OBSOpData>(forMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
+    /// Creates a `Publisher` that publishes all `OBSOpData` messages of the provided type. It doesn't complete on its own. It continues waiting until the subscriber is closed off.
+    /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
+    /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
+    func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisherAnyOpCode
             .filter { $0.operation == Op.opCode }
             .tryCompactMap { try $0.messageData() as? Op }
