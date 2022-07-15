@@ -80,7 +80,7 @@ extension OBSSessionManager {
         
         
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
-        return wsPublisher.publisher
+        return publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
             
             // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
             
@@ -98,7 +98,7 @@ extension OBSSessionManager {
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
             //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
-            .flatMap { self.publisher(forMessageOfType: OpDataTypes.Identified.self) }
+            .flatMap { self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self) }
             .tryFlatMap { _ in try self.getInitialData() }
             .handleEvents(receiveCompletion: { [weak self] result in
                 switch result {
