@@ -328,6 +328,10 @@ public extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    /// Doesn't complete on its own. It continues listening for any instances of the provided `OBSEvent` types until the subscriber is closed off.
+    /// - Parameter types: <#types description#>
+    /// - Throws: <#description#>
+    /// - Returns: <#description#>
     func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         let pubs = types.map { t in
             publisher(forAllMessagesOfType: OpDataTypes.Event.self)
