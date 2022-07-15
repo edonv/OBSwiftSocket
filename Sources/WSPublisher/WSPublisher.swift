@@ -37,9 +37,9 @@ public class WebSocketPublisher: NSObject {
         self.connectionData = connectionData
     }
     
-    public func disconnect() {
-        let reason = "Closing connection".data(using: .utf8)
-        webSocketTask.cancel(with: .goingAway, reason: reason)
+    public func disconnect(with closeCode: URLSessionWebSocketTask.CloseCode? = nil, reason: String? = nil) {
+        webSocketTask.cancel(with: closeCode ?? .normalClosure,
+                             reason: (reason ?? "Closing connection").data(using: .utf8))
     }
     
     public func send(_ message: String) -> Future<Void, Error> {
