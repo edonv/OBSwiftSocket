@@ -23,6 +23,14 @@ public final class OBSSessionManager: ObservableObject {
         wsPublisher.isConnected
     }
     
+    public var password: String? {
+        connectionData.password
+    }
+    
+    public var encodingProtocol: ConnectionData.MessageEncoding {
+        connectionData.encodingProtocol ?? .json
+    }
+    
     @Published var isStudioModeEnabled: Bool = false
     @Published var currentProgramSceneName: String! = nil
     @Published var currentPreviewSceneName: String? = nil
