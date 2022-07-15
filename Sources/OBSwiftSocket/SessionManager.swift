@@ -211,6 +211,8 @@ public extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    // TODO: Create docs here. Note that not all provided requests have to be the same kind.
+    // Instead, it's an array of pre-wrapped Request messages.
     func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
         let msgBody = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         let msg = Message<OpDataTypes.RequestBatch>(data: msgBody)
