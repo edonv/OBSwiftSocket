@@ -80,8 +80,7 @@ extension OBSSessionManager {
         return try? UserDefaults.standard.decodable(ConnectionData.self, forKey: .connectionData)
     }
     
-    public func connect(using connectionData: WebSocketPublisher.WSConnectionData,
-                        persistConnectionData: Bool = true,
+    public func connect(persistConnectionData: Bool = true,
                         events: OBSEnums.EventSubscription?) -> AnyPublisher<Void, Error> {
         // Set up listeners/publishers before starting connection.
         defer {
