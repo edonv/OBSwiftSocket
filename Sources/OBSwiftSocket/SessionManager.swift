@@ -350,17 +350,19 @@ public extension OBSSessionManager {
 
 extension OBSSessionManager {
     public struct ConnectionData: Codable {
-        public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?) {
+        public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?, encodingProtocol: MessageEncoding = .json) {
             self.scheme = scheme
             self.ipAddress = ipAddress
             self.port = port
             self.password = password
+            self.encodingProtocol = encodingProtocol
         }
         
         public var scheme: String
         public var ipAddress: String
         public var port: Int
         public var password: String?
+        public var encodingProtocol: MessageEncoding?
         
         public init?(fromUrl url: URL) {
             self.init(fromUrlRequest: URLRequest(url: url))
