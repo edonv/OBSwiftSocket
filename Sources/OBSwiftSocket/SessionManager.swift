@@ -120,6 +120,7 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    // TODO: Keep or toss this?
     public func getInitialData() throws -> AnyPublisher<Void, Error> {
         // Uses direct calls to `wsPub.sendRequest` because local one would be waiting until connected
         let studioModeReq = try sendRequest(OBSRequests.GetStudioModeEnabled())
