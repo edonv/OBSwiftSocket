@@ -10,11 +10,13 @@ import Combine
 import WSPublisher
 
 public final class OBSSessionManager: ObservableObject {
-    public init() {
+    public init(connectionData: ConnectionData) {
         self.wsPublisher = WebSocketPublisher()
+        self.connectionData = connectionData
     }
     
     public var wsPublisher: WebSocketPublisher
+    public var connectionData: ConnectionData
     private var observers = Set<AnyCancellable>()
     
     public var isConnected: Bool {
