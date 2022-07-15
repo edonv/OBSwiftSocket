@@ -268,11 +268,9 @@ public extension OBSSessionManager {
     func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         return publisher(forMessageOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
-                if resp.status.result { // code == 100
-                    return true
-                } else {
-                    throw Errors.requestResponse(resp.status)
-                }
+                // code == 100
+                guard resp.status.result else { throw Errors.requestResponse(resp.status) }
+                return true
             }
             // If the id passed in isn't nil, then make sure it matches the response id.
             // Otherwise, let any response pass through
