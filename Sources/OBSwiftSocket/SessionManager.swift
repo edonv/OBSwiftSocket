@@ -214,14 +214,15 @@ public extension OBSSessionManager {
     // TODO: Create docs here. Note that not all provided requests have to be the same kind.
     // Instead, it's an array of pre-wrapped Request messages.
     func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-        let msgBody = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
-        let msg = Message<OpDataTypes.RequestBatch>(data: msgBody)
                           requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
         
-        return wsPublisher.send(msg)
-            .flatMap { self.publisher(forMessageOfType: OpDataTypes.RequestBatchResponse.self) }
-            .filter { [msgBody] in $0.id == msgBody.id }
+        let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
+        let msgToSend = Message<OpDataTypes.RequestBatch>(data: msgBodyToSend)
+        
+        return wsPublisher.send(msgToSend)
+            .flatMap { self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self) }
+            .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
             .tryMap { try $0.mapResults() }
             .eraseToAnyPublisher()
     }
