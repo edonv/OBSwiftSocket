@@ -98,10 +98,7 @@ extension OBSSessionManager {
             //   - If there is no `authentication` field, the resulting `Identify` object sent to the server does not require an authentication string.
             //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
             .tryCompactMap { try $0.toIdentify(password: self.password) }
-            .map { data -> Message<OpDataTypes.Identify> in
-                Message<OpDataTypes.Identify>.wrap(data: data)
-            }
-            .flatMap { self.wsPublisher.send($0, encodingMode: self.encodingProtocol) }
+            .tryFlatMap { try self.sendMessage($0) }
             
             // - The server receives and processes the `Identify` sent by the client.
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
