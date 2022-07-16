@@ -101,7 +101,6 @@ extension OBSSessionManager {
             .map { data -> Message<OpDataTypes.Identify> in
                 Message<OpDataTypes.Identify>.wrap(data: data)
             }
-            .delay(for: .seconds(1), scheduler: DispatchQueue.main)
             .flatMap { self.wsPublisher.send($0, encodingMode: self.encodingProtocol) }
             
             // - The server receives and processes the `Identify` sent by the client.
