@@ -254,7 +254,7 @@ public extension OBSSessionManager {
     }
 }
 
-// MARK: - Sending Requests
+// MARK: - Sending Data
 
 public extension OBSSessionManager {
     func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
