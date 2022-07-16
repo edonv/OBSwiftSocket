@@ -268,9 +268,8 @@ extension OBSSessionManager {
                 .eraseToAnyPublisher()
         }
         
-        let msg = Message<OpDataTypes.Request>(data: body)
-        return wsPublisher.send(msg, encodingMode: self.encodingProtocol)
             .flatMap { self.publisher(forResponseTo: request, withID: msg.data.id) }
+        return try sendMessage(body)
             .eraseToAnyPublisher()
     }
     
@@ -281,12 +280,11 @@ extension OBSSessionManager {
         try checkForConnection()
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
-        let msgToSend = Message<OpDataTypes.RequestBatch>(data: msgBodyToSend)
         
-        return wsPublisher.send(msgToSend, encodingMode: self.encodingProtocol)
             .flatMap { self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self) }
             .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
             .first() // Finishes the stream after allowing 1 of the correct type through
+        return try sendMessage(msgBodyToSend)
             .tryMap { try $0.mapResults() }
             .eraseToAnyPublisher()
     }
