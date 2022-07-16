@@ -98,13 +98,15 @@ extension OBSSessionManager {
             //   - If there is no `authentication` field, the resulting `Identify` object sent to the server does not require an authentication string.
             //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
             .tryCompactMap { try $0.toIdentify(password: self.password) }
-            .tryFlatMap { try self.sendMessage($0) }
+            .tryFlatMap { Publishers.Zip(try self.sendMessage($0),
             
             // - The server receives and processes the `Identify` sent by the client.
             //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
             //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
-            .flatMap { self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self) }
+                                         self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self)) }
+            .map(\.1)
+            
             .tryFlatMap { _ in try self.getInitialData() }
             .handleEvents(receiveCompletion: { [weak self] result in
                 switch result {
@@ -275,8 +277,9 @@ extension OBSSessionManager {
                 .eraseToAnyPublisher()
         }
         
-            .flatMap { self.publisher(forResponseTo: request, withID: msg.data.id) }
-        return try sendMessage(body)
+        return Publishers.Zip(try sendMessage(body),
+                              publisher(forResponseTo: request, withID: body.id))
+            .map(\.1)
             .eraseToAnyPublisher()
     }
     
@@ -288,10 +291,9 @@ extension OBSSessionManager {
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         
-            .flatMap { self.publisher(forBatchResponseWithID: msgBodyToSend.id) }
-            .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
-            .first() // Finishes the stream after allowing 1 of the correct type through
-        return try sendMessage(msgBodyToSend)
+        return Publishers.Zip(try sendMessage(msgBodyToSend),
+                              publisher(forBatchResponseWithID: msgBodyToSend.id))
+            .map(\.1)
             .tryMap { try $0.mapResults() }
             .eraseToAnyPublisher()
     }
