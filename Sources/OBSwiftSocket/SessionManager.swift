@@ -180,8 +180,8 @@ extension OBSSessionManager {
 
 // MARK: - Observable Publishers
 
-public extension OBSSessionManager {
-    var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
+extension OBSSessionManager {
+    public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
         return wsPublisher.publisher
             .tryFilter { event throws -> Bool in
                 switch event {
@@ -207,7 +207,7 @@ public extension OBSSessionManager {
             }.eraseToAnyPublisher()
     }
     
-    var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
+    public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
         return publisherAnyOpCode
             .tryCompactMap { try $0.messageData() }
             .eraseToAnyPublisher()
@@ -216,7 +216,7 @@ public extension OBSSessionManager {
     /// Creates a `Publisher` that publishes all `OBSOpData` messages of the provided type. It doesn't complete on its own. It continues waiting until the subscriber is closed off.
     /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
-    func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
+    public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisherAnyOpCode
             .filter { $0.operation == Op.opCode }
             .tryCompactMap { try $0.messageData() as? Op }
@@ -226,13 +226,13 @@ public extension OBSSessionManager {
     /// Creates a `Publisher` that publishes the first `OBSOpData` message of the provided type. It completes after the first message.
     /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
     /// - Returns: A `Publisher` that publishes the first `OBSOpData` message of the provided type.
-    func publisher<Op: OBSOpData>(forFirstMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
+    public func publisher<Op: OBSOpData>(forFirstMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisher(forAllMessagesOfType: type)
             .first() // Finishes the stream after allowing 1 of the correct type through
             .eraseToAnyPublisher()
     }
     
-    func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
+    public func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
                 // code == 100
@@ -252,15 +252,15 @@ public extension OBSSessionManager {
 
 // MARK: - Sending Data
 
-public extension OBSSessionManager {
-    func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
+extension OBSSessionManager {
+    public func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
         try checkForConnection()
         
         let msg = Message<BodyType>(data: body)
         return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
-    func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
+    public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
         guard let type = request.typeEnum,
               let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
@@ -276,8 +276,8 @@ public extension OBSSessionManager {
     
     // TODO: Create docs here. Note that not all provided requests have to be the same kind.
     // Instead, it's an array of pre-wrapped Request messages.
-    func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                          requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
+    public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
+                                 requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
@@ -297,8 +297,8 @@ public extension OBSSessionManager {
     ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests` must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched up with their responses in the returned `Dictionary`.
     /// - Throws: If `wsPublisher` is not currently connected, a `WebSocketPublisher.WSErrors.noActiveConnection` error will be thrown.
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
-    func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                         requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
+    public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
+                                                requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
         //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
         
         return try sendRequestBatch(executionType: executionType,
@@ -318,8 +318,8 @@ public extension OBSSessionManager {
 
 // MARK: - Listening for OBSEvents
 
-public extension OBSSessionManager {
-    func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
+extension OBSSessionManager {
+    public func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
         let pub = publisher(forAllMessagesOfType: OpDataTypes.Event.self)
@@ -337,7 +337,7 @@ public extension OBSSessionManager {
         }
     }
     
-    func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
+    public func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
         guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion }
         return try listenForEvent(type, firstOnly: firstOnly)
             .compactMap { $0 as? E }
@@ -348,7 +348,7 @@ public extension OBSSessionManager {
     /// - Parameter types: <#types description#>
     /// - Throws: <#description#>
     /// - Returns: <#description#>
-    func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
+    public func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
         let pubs = types.map { t in
