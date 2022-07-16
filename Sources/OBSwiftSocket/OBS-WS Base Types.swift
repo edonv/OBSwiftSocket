@@ -67,10 +67,6 @@ public struct Message<BodyType: OBSOpData>: Codable {
         case operation = "op"
         case data = "d"
     }
-    
-    static func wrap<T: OBSOpData>(data: T) -> Message<T> {
-        return .init(data: data)
-    }
 }
 
 
