@@ -248,6 +248,13 @@ extension OBSSessionManager {
             .first() // Finishes the stream after allowing 1 of the correct type through
             .eraseToAnyPublisher()
     }
+    
+    public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
+        return self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
+            .filter { [id] receivedMsgBody in receivedMsgBody.id == id }
+            .first() // Finishes the stream after allowing 1 of the correct type through
+            .eraseToAnyPublisher()
+    }
 }
 
 // MARK: - Sending Data
@@ -281,7 +288,7 @@ extension OBSSessionManager {
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
         
-            .flatMap { self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self) }
+            .flatMap { self.publisher(forBatchResponseWithID: msgBodyToSend.id) }
             .filter { [msgBodyToSend] receivedMsgBody in receivedMsgBody.id == msgBodyToSend.id }
             .first() // Finishes the stream after allowing 1 of the correct type through
         return try sendMessage(msgBodyToSend)
