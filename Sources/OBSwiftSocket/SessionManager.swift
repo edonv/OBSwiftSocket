@@ -180,6 +180,70 @@ extension OBSSessionManager {
     }
 }
 
+// MARK: - Sending Data
+
+extension OBSSessionManager {
+    public func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
+        try checkForConnection()
+        
+        let msg = Message<BodyType>(data: body)
+        return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
+    }
+    
+    public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
+        try checkForConnection()
+        guard let type = request.typeEnum,
+              let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
+            return Fail(error: Errors.buildingRequest)
+                .eraseToAnyPublisher()
+        }
+        
+        return Publishers.Zip(try sendMessage(body),
+                              publisher(forResponseTo: request, withID: body.id))
+            .map(\.1)
+            .eraseToAnyPublisher()
+    }
+    
+    // TODO: Create docs here. Note that not all provided requests have to be the same kind.
+    // Instead, it's an array of pre-wrapped Request messages.
+    public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
+                                 requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
+        try checkForConnection()
+        
+        let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
+        
+        return Publishers.Zip(try sendMessage(msgBodyToSend),
+                              publisher(forBatchResponseWithID: msgBodyToSend.id))
+            .map(\.1)
+            .tryMap { try $0.mapResults() }
+            .eraseToAnyPublisher()
+    }
+    
+    /// <#Description#>
+    /// - Parameters:
+    ///   - executionType: <#executionType description#>
+    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests` must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched up with their responses in the returned `Dictionary`.
+    /// - Throws: If `wsPublisher` is not currently connected, a `WebSocketPublisher.WSErrors.noActiveConnection` error will be thrown.
+    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
+    public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
+                                                requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
+        //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
+        
+        return try sendRequestBatch(executionType: executionType,
+                                    requests: requests.map { (id, req) -> OpDataTypes.RequestBatch.Request? in
+                                        return OpDataTypes.Request(
+                                            type: req.typeEnum!,
+                                            id: id,
+                                            request: req
+                                        )?.forBatch()
+                                    })
+            .map { respDict in
+                respDict.compactMapValues { $0 as? R.ResponseType }
+            }
+            .eraseToAnyPublisher()
+    }
+}
+
 // MARK: - Observable Publishers
 
 extension OBSSessionManager {
@@ -255,70 +319,6 @@ extension OBSSessionManager {
         return self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
             .filter { [id] receivedMsgBody in receivedMsgBody.id == id }
             .first() // Finishes the stream after allowing 1 of the correct type through
-            .eraseToAnyPublisher()
-    }
-}
-
-// MARK: - Sending Data
-
-extension OBSSessionManager {
-    public func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
-        try checkForConnection()
-        
-        let msg = Message<BodyType>(data: body)
-        return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
-    }
-    
-    public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
-        try checkForConnection()
-        guard let type = request.typeEnum,
-              let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
-            return Fail(error: Errors.buildingRequest)
-                .eraseToAnyPublisher()
-        }
-        
-        return Publishers.Zip(try sendMessage(body),
-                              publisher(forResponseTo: request, withID: body.id))
-            .map(\.1)
-            .eraseToAnyPublisher()
-    }
-    
-    // TODO: Create docs here. Note that not all provided requests have to be the same kind.
-    // Instead, it's an array of pre-wrapped Request messages.
-    public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                 requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
-        try checkForConnection()
-        
-        let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
-        
-        return Publishers.Zip(try sendMessage(msgBodyToSend),
-                              publisher(forBatchResponseWithID: msgBodyToSend.id))
-            .map(\.1)
-            .tryMap { try $0.mapResults() }
-            .eraseToAnyPublisher()
-    }
-    
-    /// <#Description#>
-    /// - Parameters:
-    ///   - executionType: <#executionType description#>
-    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests` must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched up with their responses in the returned `Dictionary`.
-    /// - Throws: If `wsPublisher` is not currently connected, a `WebSocketPublisher.WSErrors.noActiveConnection` error will be thrown.
-    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
-    public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                                requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
-        //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
-        
-        return try sendRequestBatch(executionType: executionType,
-                                    requests: requests.map { (id, req) -> OpDataTypes.RequestBatch.Request? in
-                                        return OpDataTypes.Request(
-                                            type: req.typeEnum!,
-                                            id: id,
-                                            request: req
-                                        )?.forBatch()
-                                    })
-            .map { respDict in
-                respDict.compactMapValues { $0 as? R.ResponseType }
-            }
             .eraseToAnyPublisher()
     }
 }
