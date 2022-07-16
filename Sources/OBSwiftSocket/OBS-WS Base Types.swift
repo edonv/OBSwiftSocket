@@ -55,10 +55,10 @@ public struct UntypedMessage: Codable {
 }
 
 public struct Message<BodyType: OBSOpData>: Codable {
-    var operation: OBSEnums.OpCode
-    var data: BodyType
+    public var operation: OBSEnums.OpCode
+    public var data: BodyType
     
-    init(data: BodyType) {
+    public init(data: BodyType) {
         self.operation = BodyType.opCode
         self.data = data
     }
