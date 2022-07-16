@@ -358,14 +358,12 @@ extension OBSSessionManager {
     public func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
-        let pubs = types.map { t in
+        return Publishers.MergeMany(types.map { t in
             publisher(forAllMessagesOfType: OpDataTypes.Event.self)
                 .filter { $0.type == t }
                 .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
-            //                .eraseToAnyPublisher()
-        }
-        return Publishers.MergeMany(pubs)
-            .eraseToAnyPublisher()
+        })
+        .eraseToAnyPublisher()
     }
 }
 
