@@ -257,6 +257,13 @@ public extension OBSSessionManager {
 // MARK: - Sending Requests
 
 public extension OBSSessionManager {
+    func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
+        try checkForConnection()
+        
+        let msg = Message<BodyType>(data: body)
+        return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
+    }
+    
     func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
         guard let type = request.typeEnum,
