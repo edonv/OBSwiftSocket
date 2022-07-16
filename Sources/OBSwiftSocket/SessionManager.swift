@@ -111,9 +111,6 @@ extension OBSSessionManager {
             .handleEvents(receiveCompletion: { [weak self] result in
                 switch result {
                 case .finished:
-//                    print("Success:", result)
-//                    self?.isConnected = true
-                    
                     if persistConnectionData,
                        let data = self?.connectionData {
                         self?.persistConnectionData(data)
@@ -121,8 +118,6 @@ extension OBSSessionManager {
                     try? self?.addObservers()
                     
                 case .failure(let err):
-//                    print("*3* Failure to connect:", err)
-//                    self?.isConnected = false
                     self?.wsPublisher.disconnect()
                 }
             })
