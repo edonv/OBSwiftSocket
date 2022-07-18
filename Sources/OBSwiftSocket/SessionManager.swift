@@ -82,12 +82,11 @@ extension OBSSessionManager {
     }
     
     public func connect(persistConnectionData: Bool = true,
-                        events: OBSEnums.EventSubscription?) -> AnyPublisher<Void, Error> {
+                        events: OBSEnums.EventSubscription? = nil) -> AnyPublisher<Void, Error> {
         // Set up listeners/publishers before starting connection.
         defer {
             wsPublisher.connect(with: connectionData.urlRequest!)
         }
-        
         
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
         return publisher(forFirstMessageOfType: OpDataTypes.Hello.self)

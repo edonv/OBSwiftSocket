@@ -136,7 +136,7 @@ public enum OpDataTypes {
             var salt: String
         }
         
-        func toIdentify(password: String?, subscribeTo events: OBSEnums.EventSubscription? = nil) throws -> Identify {
+        func toIdentify(password: String?, subscribeTo events: OBSEnums.EventSubscription?) throws -> Identify {
             var auth: String? = nil
             
             // To generate the authentication string, follow these steps:
