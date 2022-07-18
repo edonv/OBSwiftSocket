@@ -254,7 +254,6 @@ extension OBSSessionManager {
             .compactMap { event -> UntypedMessage? in
                 switch event {
                 case .data(let d):
-                    // TODO: MsgPack? does this work?
                     return try? MessagePackDecoder().decode(UntypedMessage.self, from: d)
                 case .string(let str):
                     return try? JSONDecoder.decode(UntypedMessage.self, from: str)
