@@ -176,10 +176,10 @@ extension OBSSessionManager {
 // MARK: - Sending Data
 
 extension OBSSessionManager {
-    public func sendMessage<BodyType: OBSOpData>(_ body: BodyType) throws -> AnyPublisher<Void, Error> {
+    public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
         try checkForConnection()
         
-        let msg = Message<BodyType>(data: body)
+        let msg = Message<Body>(data: body)
         return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
