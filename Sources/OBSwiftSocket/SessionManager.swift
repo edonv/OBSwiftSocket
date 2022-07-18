@@ -220,8 +220,6 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                                 requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
-        //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
-        
         return try sendRequestBatch(executionType: executionType,
                                     requests: requests.compactMap { (id, req) -> OpDataTypes.RequestBatch.Request? in
                                         return OpDataTypes.Request(
