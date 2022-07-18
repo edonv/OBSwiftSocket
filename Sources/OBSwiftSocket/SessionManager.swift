@@ -200,7 +200,7 @@ extension OBSSessionManager {
     // TODO: Create docs here. Note that not all provided requests have to be the same kind.
     // Instead, it's an array of pre-wrapped Request messages.
     public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                 requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
+                                 requests: [OpDataTypes.RequestBatch.Request]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
