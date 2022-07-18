@@ -292,7 +292,7 @@ extension OBSSessionManager {
         return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
                 // code == 100
-                guard resp.status.result else { throw Errors.requestResponse(resp.status) }
+                guard resp.status.result else { throw Errors.requestResponseNotSuccess(resp.status) }
                 return true
             }
             // If the id passed in isn't nil, then make sure it matches the response id.
@@ -440,7 +440,7 @@ internal extension OBSSessionManager {
         /// Thrown during authentication process when OBS requires a password, but the user didn't supply one.
         case missingPasswordWhereRequired
         
-        case requestResponse(OpDataTypes.RequestResponse.Status)
+        case requestResponseNotSuccess(OpDataTypes.RequestResponse.Status)
         case buildingRequest
         case sendingRequest
         case weakSelfNil
