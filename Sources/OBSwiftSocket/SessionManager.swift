@@ -223,7 +223,7 @@ extension OBSSessionManager {
         //        guard requests.allSatisfy { $0.type == R.typeEnum } else { return }
         
         return try sendRequestBatch(executionType: executionType,
-                                    requests: requests.map { (id, req) -> OpDataTypes.RequestBatch.Request? in
+                                    requests: requests.compactMap { (id, req) -> OpDataTypes.RequestBatch.Request? in
                                         return OpDataTypes.Request(
                                             type: req.typeEnum!,
                                             id: id,
