@@ -288,7 +288,7 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    public func publisher<R: OBSRequest>(forResponseTo req: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
+    public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
                 // code == 100
@@ -300,7 +300,7 @@ extension OBSSessionManager {
             .filter { id != nil ? id == $0.id : true }
             .map(\.data)
             .replaceNil(with: .emptyObject)
-            .tryCompactMap { try $0.toCodable(req.type.ResponseType.self) }
+            .tryCompactMap { try $0.toCodable(request.type.ResponseType.self) }
             .first() // Finishes the stream after allowing 1 of the correct type through
             .eraseToAnyPublisher()
     }
