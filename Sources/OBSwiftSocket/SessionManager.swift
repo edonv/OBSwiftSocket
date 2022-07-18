@@ -299,6 +299,7 @@ extension OBSSessionManager {
             // Otherwise, let any response pass through
             .filter { [id] receivedResp in id != nil ? id == receivedResp.id : true }
             .map(\.data)
+            // This catches any requests whose associated responses are empty objects.
             .replaceNil(with: .emptyObject)
             .tryCompactMap { try $0.toCodable(request.type.ResponseType.self) }
             .first() // Finishes the stream after allowing 1 of the correct type through
