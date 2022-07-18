@@ -297,7 +297,7 @@ extension OBSSessionManager {
             }
             // If the id passed in isn't nil, then make sure it matches the response id.
             // Otherwise, let any response pass through
-            .filter { id != nil ? id == $0.id : true }
+            .filter { [id] receivedResp in id != nil ? id == receivedResp.id : true }
             .map(\.data)
             .replaceNil(with: .emptyObject)
             .tryCompactMap { try $0.toCodable(request.type.ResponseType.self) }
