@@ -376,8 +376,8 @@ extension OBSSessionManager {
         public var password: String?
         public var encodingProtocol: MessageEncoding?
         
-        public init?(fromUrl url: URL) {
-            self.init(fromUrlRequest: URLRequest(url: url))
+        public init?(fromUrl url: URL, encodingProtocol: MessageEncoding? = nil) {
+            self.init(fromUrlRequest: URLRequest(url: url), encodingProtocol: encodingProtocol)
         }
         
         public init?(fromUrlRequest request: URLRequest,
