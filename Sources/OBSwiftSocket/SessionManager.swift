@@ -380,7 +380,8 @@ extension OBSSessionManager {
             self.init(fromUrlRequest: URLRequest(url: url))
         }
         
-        public init?(fromUrlRequest request: URLRequest) {
+        public init?(fromUrlRequest request: URLRequest,
+                     encodingProtocol: MessageEncoding? = nil) {
             guard let url = request.url,
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                   let scheme = components.scheme,
@@ -396,6 +397,8 @@ extension OBSSessionManager {
             
             if let encodingStr = request.value(forHTTPHeaderField: Self.encodingProtocolHeaderKey),
                let encoding = MessageEncoding(rawValue: encodingStr) {
+                self.encodingProtocol = encoding
+            } else if let encoding = encodingProtocol {
                 self.encodingProtocol = encoding
             }
         }
