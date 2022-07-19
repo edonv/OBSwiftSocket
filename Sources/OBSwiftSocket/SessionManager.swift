@@ -346,10 +346,10 @@ extension OBSSessionManager {
     /// - Parameter types: <#types description#>
     /// - Throws: <#description#>
     /// - Returns: <#description#>
-    public func listenForEvents(_ types: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
+    public func listenForEvents(_ eventTypes: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
-        return Publishers.MergeMany(types.map { t in
+        return Publishers.MergeMany(eventTypes.map { t in
             publisher(forAllMessagesOfType: OpDataTypes.Event.self)
                 .filter { $0.type == t }
                 .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
