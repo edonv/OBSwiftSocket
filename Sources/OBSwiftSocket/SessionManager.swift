@@ -10,6 +10,7 @@ import Combine
 import WSPublisher
 import MessagePacker
 
+/// Manages connection sessions with OBS.
 public final class OBSSessionManager: ObservableObject {
     public init(connectionData: ConnectionData) {
         self.wsPublisher = WebSocketPublisher()
@@ -65,21 +66,31 @@ public final class OBSSessionManager: ObservableObject {
 
 extension OBSSessionManager {
     /// Checks for an active WebSocket connection.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` if there's no active connection.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     public func checkForConnection() throws {
         if !isConnected {
             throw WebSocketPublisher.WSErrors.noActiveConnection
         }
     }
     
+    /// Saves connection data to `UserDefaults`.
+    /// - Parameter connectionData: The `ConnectionData` to persist.
     public func persistConnectionData(_ connectionData: ConnectionData) {
         try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
     
+    /// Loads persisted connection data from `UserDefaults` if it has been saved.
+    /// - Returns: Persisted `ConnectionData` if it's been persisted.
     public func loadConnectionData() -> ConnectionData? {
         return try? UserDefaults.standard.decodable(ConnectionData.self, forKey: .connectionData)
     }
     
+    /// Connects to OBS using `connectionData`.
+    /// - Parameters:
+    ///   - persistConnectionData: Whether `connectionData` should be persisted if connected successfully.
+    ///   - events: Bit mask (`OptionSet`) of which `OBSEvents` to be alerted of.
+    /// - Returns: A `Publisher` that completed upon connecting successfully. If connection process fails,
+    /// it completes with an `Error`.
     public func connect(persistConnectionData: Bool = true,
                         events: OBSEnums.EventSubscription? = nil) -> AnyPublisher<Void, Error> {
         // Set up listeners/publishers before starting connection.
@@ -176,6 +187,10 @@ extension OBSSessionManager {
 // MARK: - Sending Data
 
 extension OBSSessionManager {
+    /// Sends a message wrapped around the given message body.
+    /// - Parameter body: The data that should be wrapped in a `Message<Body>` and sent.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Returns: A `Publisher` without any value, signalling that the message has been sent.
     public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
         try checkForConnection()
         
@@ -183,6 +198,10 @@ extension OBSSessionManager {
         return self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
+    /// Sends a `Request` message wrapped around the given `OBSRequest` body.
+    /// - Parameter request: The `OBSRequest` that in a should be sent.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Returns: A `Publisher` containing a response in the form of the associated `ResponseType`.
     public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
         guard let type = request.typeEnum,
@@ -197,8 +216,17 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    // TODO: Create docs here. Note that not all provided requests have to be the same kind.
-    // Instead, it's an array of pre-wrapped Request messages.
+    /// Sends a `RequestBatch` message wrapped around the provided array of `OpDataTypes.RequestBatch.Request`s.
+    ///
+    /// The Requests can be created from different types of `OBSRequest`s.
+    /// - Parameters:
+    ///   - executionType: The method by which WebSocket-OBS should execute the request batch.
+    ///   - requests: An array of `OpDataTypes.RequestBatch.Request`s. Unlike the other overload of
+    ///   `sendRequestBatch(executionType:requests:)`, these can be different types of `Request`s.
+    ///   This can most easily be done by using the `OpDataTypes.RequestBatch.Request(id:request:)`
+    ///   init for each one. This creates general, untyped `Request`s.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                  requests: [OpDataTypes.RequestBatch.Request]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
@@ -212,11 +240,15 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// <#Description#>
+    /// Sends a `RequestBatch` message wrapped around an array of the provided `OBSRequest`s.
+    ///
+    /// The Requests have to be the same type of `OBSRequest`.
     /// - Parameters:
-    ///   - executionType: <#executionType description#>
-    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests` must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched up with their responses in the returned `Dictionary`.
-    /// - Throws: If `wsPublisher` is not currently connected, a `WebSocketPublisher.WSErrors.noActiveConnection` error will be thrown.
+    ///   - executionType: The method by which WebSocket-OBS should execute the request batch.
+    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests`
+    ///   must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched
+    ///   up with their responses in the returned `Dictionary`.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                                 requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
@@ -238,6 +270,8 @@ extension OBSSessionManager {
 // MARK: - Observable Publishers
 
 extension OBSSessionManager {
+    /// Creates a `Publisher` that publishes any message received from the server.
+    /// It contains the message in the form of an `UntypedMessage`.
     public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
         return wsPublisher.publisher
             .tryFilter { event throws -> Bool in
@@ -263,14 +297,20 @@ extension OBSSessionManager {
             }.eraseToAnyPublisher()
     }
     
+    /// Creates a `Publisher` that publishes the `data` property of any message
+    /// received from the server. The `data` is mapped to an instace of the `OBSOpData` protocol.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
         return publisherAnyOpCode
             .tryCompactMap { try $0.messageData() }
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that publishes all `OBSOpData` messages of the provided type. It doesn't complete on its own. It continues waiting until the subscriber is closed off.
-    /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
+    /// Creates a `Publisher` that publishes all messages received from the server, filtered by the
+    /// provided `OBSOpData` type.
+    ///
+    /// It doesn't complete on its own. It continues waiting until the subscriber is closed off.
+    /// - Parameter type: Message type for the created `Publisher` to filter (i.e.
+    /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisherAnyOpCode
@@ -279,8 +319,12 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that publishes the first `OBSOpData` message of the provided type. It completes after the first message.
-    /// - Parameter type: The type of message for the created `Publisher` to publish. i.e. `OpDataTypes.Hello.self`
+    /// Creates a `Publisher` that publishes the first message received from the server of the provided
+    /// `OBSOpData` type.
+    ///
+    /// It completes after the first message passes through.
+    /// - Parameter type: Message type for the created `Publisher` to publish. (i.e.
+    /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes the first `OBSOpData` message of the provided type.
     public func publisher<Op: OBSOpData>(forFirstMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisher(forAllMessagesOfType: type)
@@ -288,6 +332,13 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    /// Creates a `Publisher` that publishes the data of the first `OBSRequestResponse` message received
+    /// from the server that matches the provided `OBSRequest` type and message ID (if provided).
+    /// - Parameters:
+    ///   - request: `OBSRequest` object for which the published `OBSRequestResponse` should be
+    ///   associated with.
+    ///   - id: If provided, the `Publisher` will confirm that the response message has the same ID.
+    /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
@@ -306,6 +357,9 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
+    /// Creates a `Publisher` that publishes the `RequestBatchResponse` that matches the provided ID.
+    /// - Parameter id: ID of the `RequestBatch` whose `RequestBatchResponse` should be published.
+    /// - Returns: A `Publisher` that finishes when it receives `RequestBatchResponse` matching the provided ID.
     public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
         return self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
             .filter { [id] receivedMsgBody in receivedMsgBody.id == id }
@@ -317,6 +371,15 @@ extension OBSSessionManager {
 // MARK: - Listening for OBSEvents
 
 extension OBSSessionManager {
+    /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
+    ///
+    /// This overload takes in an instance of `OBSEvents.AllTypes`.
+    /// - Parameters:
+    ///   - eventType: Type of `OBSEvent` to listen for.
+    ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided type.
     public func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
@@ -335,6 +398,15 @@ extension OBSSessionManager {
         }
     }
     
+    /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
+    ///
+    /// This overload takes in a metatype of a `OBSEvents` type. (i.e. `OBSEvents.InputCreated.self`)
+    /// - Parameters:
+    ///   - eventType: Type of `OBSEvent` to listen for.
+    ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided type.
     public func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
         guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion }
         return try listenForEvent(type, firstOnly: firstOnly)
@@ -342,10 +414,14 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Doesn't complete on its own. It continues listening for any instances of the provided `OBSEvent` types until the subscriber is closed off.
-    /// - Parameter types: <#types description#>
-    /// - Throws: <#description#>
-    /// - Returns: <#description#>
+    /// Creates a `Publisher` that publishes all received `OBSEvent`s of the provided types.
+    ///
+    /// Doesn't complete on its own. It continues listening for any instances of the provided
+    /// `OBSEvent` types until the subscriber is closed off.
+    /// - Parameter eventTypes: Types of `OBSEvent`s to listen for. (i.e. `OBSEvents.InputCreated.self`)
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided types.
     public func listenForEvents(_ eventTypes: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
@@ -359,9 +435,11 @@ extension OBSSessionManager {
 }
 
 extension OBSSessionManager {
+    /// A container type for managing information for connecting to OBS-WebSocket.
     public struct ConnectionData: Codable {
         static let encodingProtocolHeaderKey = "Sec-WebSocket-Protocol"
         
+        /// Memberwise initializer.
         public init(scheme: String = "ws", ipAddress: String, port: Int, password: String?, encodingProtocol: MessageEncoding = .json) {
             self.scheme = scheme
             self.ipAddress = ipAddress
@@ -370,16 +448,23 @@ extension OBSSessionManager {
             self.encodingProtocol = encodingProtocol
         }
         
+        /// URL scheme to use.
         public var scheme: String
+        /// IP address of the OBS-WebSocket server.
         public var ipAddress: String
+        /// Port number of the OBS-WebSocket server.
         public var port: Int
+        /// Password for OBS-WebSocket connection, if authentication is turned on.
         public var password: String?
+        /// Which method of encoding messages the connection should use.
         public var encodingProtocol: MessageEncoding?
         
+        /// Initializes connection data from a `URL`.
         public init?(fromUrl url: URL, encodingProtocol: MessageEncoding? = nil) {
             self.init(fromUrlRequest: URLRequest(url: url), encodingProtocol: encodingProtocol)
         }
         
+        /// Initializes connection data from a `URLRequest`.
         public init?(fromUrlRequest request: URLRequest,
                      encodingProtocol: MessageEncoding? = nil) {
             guard let url = request.url,
@@ -403,6 +488,7 @@ extension OBSSessionManager {
             }
         }
         
+        /// An assembled `String` of the full URL.
         public var urlString: String {
             var str = "\(scheme)://\(ipAddress):\(port)"
             if let pass = password, !pass.isEmpty {
@@ -411,10 +497,12 @@ extension OBSSessionManager {
             return str
         }
         
+        /// An `URL` initialized from `urlString`.
         public var url: URL? {
             return URL(string: urlString)
         }
         
+        /// An `URLRequest` initialized from `url` and `encodingProtocol`, if not `nil`.
         public var urlRequest: URLRequest? {
             guard let url = self.url else { return nil }
             var req = URLRequest(url: url)
@@ -425,6 +513,7 @@ extension OBSSessionManager {
             return req
         }
         
+        /// Mode for encoding messages.
         public enum MessageEncoding: String, Codable {
             /// JSON over text frames
             case json = "obswebsocket.json"
@@ -437,15 +526,23 @@ extension OBSSessionManager {
 // MARK: - Errors
 
 internal extension OBSSessionManager {
+    /// Errors pertaining to `OBSSessionManager`.
     enum Errors: Error {
+        /// Thrown when a connection is closed.
         case disconnected(_ closeCode: OBSEnums.CloseCode?, _ reason: String?)
         
         /// Thrown during authentication process when OBS requires a password, but the user didn't supply one.
         case missingPasswordWhereRequired
         
+        /// Thrown when an `OBSRequestResponse` is received with a status that is
+        /// not `OBSEnums.RequestStatus.success` (`100`).
         case requestResponseNotSuccess(OpDataTypes.RequestResponse.Status)
-        case buildingRequest
-        case failedEventTypeConversion
         
+        /// Thrown when an error occurs while building an `OBSRequest` message body.
+        case buildingRequest
+        
+        /// Thrown from `listenForEvent(_:firstOnly:)` when an `OBSEvent` type is unsuccessfully converted to
+        /// an `OBSEvent.AllTypes` case.
+        case failedEventTypeConversion
     }
 }
