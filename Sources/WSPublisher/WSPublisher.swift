@@ -68,11 +68,10 @@ public class WebSocketPublisher: NSObject {
     }
     
         
-        return Just(())
-            .setFailureType(to: Error.self)
-            .delay(for: .seconds(1), scheduler: DispatchQueue.main)
-            .flatMap { [task] _ in task.send(message) }
-//            .mapError { $0 as! WSErrors }
+        return Publishers.Delay(upstream: task.send(message),
+                                 interval: .seconds(1),
+                                 tolerance: .seconds(0.5),
+                                 scheduler: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
     
