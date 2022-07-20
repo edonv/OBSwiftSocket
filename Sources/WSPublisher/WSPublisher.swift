@@ -53,11 +53,6 @@ public class WebSocketPublisher: NSObject {
         observers.forEach { $0.cancel() }
     }
     
-    private func send(_ message: URLSessionWebSocketTask.Message) -> AnyPublisher<Void, Error> {
-        guard let task = webSocketTask else {
-            return Fail(error: WSErrors.noActiveConnection)
-                .eraseToAnyPublisher()
-        }
     /// Confirms that there is an active connection.
     /// - Throws: `WSErrors.noActiveConnection` error if there isn't an active connection.
     /// - Returns: An unwrapped optional `webSocketTask`.
@@ -66,6 +61,8 @@ public class WebSocketPublisher: NSObject {
         return task
     }
     
+    private func send(_ message: URLSessionWebSocketTask.Message) throws -> AnyPublisher<Void, Error> {
+        let task = try confirmConnection()
         
         return Publishers.Delay(upstream: task.send(message),
                                  interval: .seconds(1),
@@ -74,19 +71,16 @@ public class WebSocketPublisher: NSObject {
             .eraseToAnyPublisher()
     }
     
-    public func send(_ message: String) -> AnyPublisher<Void, Error> {
-        return send(.string(message))
+    public func send(_ message: String) throws -> AnyPublisher<Void, Error> {
+        return try send(.string(message))
     }
     
-    public func send(_ message: Data) -> AnyPublisher<Void, Error> {
-        return send(.data(message))
+    public func send(_ message: Data) throws -> AnyPublisher<Void, Error> {
+        return try send(.data(message))
     }
     
-    public func ping() -> AnyPublisher<Void, Error> {
-        guard let task = webSocketTask else {
-            return Fail(error: WSErrors.noActiveConnection)
-                .eraseToAnyPublisher()
-        }
+    public func ping() throws -> AnyPublisher<Void, Error> {
+        let task = try confirmConnection()
         
         return task.sendPing()
             .eraseToAnyPublisher()
