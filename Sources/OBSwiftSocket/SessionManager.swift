@@ -17,18 +17,26 @@ public final class OBSSessionManager: ObservableObject {
         self.connectionData = connectionData
     }
     
+    /// Publisher that maintains connections with WebSocket server and publishes events.
     public var wsPublisher: WebSocketPublisher
+    
+    /// Data for creating connection to OBS-WS.
     public var connectionData: ConnectionData
+    
+    /// Contains any active `Combine` `Cancellable`s.
     private var observers = Set<AnyCancellable>()
     
+    /// Returns whether `wsPublisher` is connected to a WebSocket (OBS) server.
     public var isConnected: Bool {
         wsPublisher.isConnected
     }
     
+    /// Returns the `password` from `connectionData` if one is set.
     public var password: String? {
         connectionData.password
     }
     
+    /// Returns the encoding mode used for communicating with OBS.
     public var encodingProtocol: ConnectionData.MessageEncoding {
         connectionData.encodingProtocol ?? .json
     }
@@ -41,6 +49,7 @@ public final class OBSSessionManager: ObservableObject {
         currentPreviewSceneName ?? currentProgramSceneName
     }
     
+    /// Creates a `Publisher` that returns changes to the connection status.
     public var connectionStatus: AnyPublisher<Bool, Error> {
         return wsPublisher.publisher
             .map { event -> Bool? in
