@@ -75,7 +75,7 @@ public class WebSocketPublisher: NSObject {
     }
     
     /// Confirms that there is an active connection.
-    /// - Throws: `WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: An unwrapped optional `webSocketTask`.
     private func confirmConnection() throws -> URLSessionWebSocketTask {
         guard let task = webSocketTask else { throw WSErrors.noActiveConnection }
@@ -87,6 +87,7 @@ public class WebSocketPublisher: NSObject {
     ///
     /// The returned `Publisher` fails if
     /// - Parameter message: The `URLSessionWebSocketTask.Message` to send.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     private func send(_ message: URLSessionWebSocketTask.Message) throws -> AnyPublisher<Void, Error> {
         let task = try confirmConnection()
@@ -100,6 +101,7 @@ public class WebSocketPublisher: NSObject {
     
     /// Sends a `String` message to the connected WebSocket server/host.
     /// - Parameter message: The `String` message to send.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     public func send(_ message: String) throws -> AnyPublisher<Void, Error> {
         return try send(.string(message))
@@ -107,12 +109,14 @@ public class WebSocketPublisher: NSObject {
     
     /// Sends a `Data` message to the connected WebSocket server/host.
     /// - Parameter message: The `Data` message to send.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     public func send(_ message: Data) throws -> AnyPublisher<Void, Error> {
         return try send(.data(message))
     }
     
     /// Sends a ping to the connected WebSocket server/host.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     public func ping() throws -> AnyPublisher<Void, Error> {
         let task = try confirmConnection()
