@@ -13,21 +13,22 @@ import MessagePacker
 // MARK: - Send Encodable Objects
 
 extension WebSocketPublisher {
-    /// Sending Encodable Objects
-    /// - Parameter object: <#object description#>
-    /// - Returns: <#description#>
-    func send<T: Encodable>(_ object: T,
+    /// Sends an `Encodable` message to the connected WebSocket server/host.
+    /// - Parameter message: The `Encodable` message to send.
+    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
+    /// - Returns: A `Publisher` without any value, signalling the message has been sent.
+    func send<T: Encodable>(_ message: T,
                             encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) throws -> AnyPublisher<Void, Error> {
         switch encodingMode {
         case .json:
-            guard let json = JSONEncoder.toString(from: object) else {
+            guard let json = JSONEncoder.toString(from: message) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.json))
                     .eraseToAnyPublisher()
             }
             return try send(json)
         
         case .msgPack:
-            guard let msgData = try? MessagePackEncoder().encode(object) else {
+            guard let msgData = try? MessagePackEncoder().encode(message) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.msgPack))
                     .eraseToAnyPublisher()
             }
