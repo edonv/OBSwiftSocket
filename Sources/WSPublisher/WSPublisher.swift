@@ -146,8 +146,8 @@ extension WebSocketPublisher {
 
 // MARK: - URLSessionWebSocketTask Combine
 
-public extension URLSessionWebSocketTask {
-    func send(_ message: Message) -> Future<Void, Error> {
+extension URLSessionWebSocketTask {
+    public func send(_ message: Message) -> Future<Void, Error> {
         return Future { promise in
             self.send(message) { error in
                 if let err = error {
@@ -159,7 +159,7 @@ public extension URLSessionWebSocketTask {
         }
     }
     
-    func sendPing() -> Future<Void, Error> {
+    public func sendPing() -> Future<Void, Error> {
         return Future { promise in
             self.sendPing { error in
                 if let err = error {
@@ -171,7 +171,7 @@ public extension URLSessionWebSocketTask {
         }
     }
     
-    func receiveOnce() -> Future<URLSessionWebSocketTask.Message, Error> {
+    public func receiveOnce() -> Future<URLSessionWebSocketTask.Message, Error> {
         return Future { promise in
             self.receive(completionHandler: promise)
         }
