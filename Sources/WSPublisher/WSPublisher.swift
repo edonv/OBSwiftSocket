@@ -51,7 +51,6 @@ public class WebSocketPublisher: NSObject {
         webSocketTask = nil
         urlRequest = nil
         observers.forEach { $0.cancel() }
-        print("Task data cleared")
     }
     
     private func send(_ message: URLSessionWebSocketTask.Message) -> AnyPublisher<Void, Error> {
@@ -99,20 +98,14 @@ public class WebSocketPublisher: NSObject {
         task.receiveOnce()
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] result in
-//                print("*1* Stopped listening:", result)
                 guard case .finished = result else { return }
                 self?.startListening()
             }, receiveValue: { [weak self] message in
-//                print("Received message:", message)
                 switch message {
                 case .data(let d):
                     self?._subject.send(.data(d))
                 case .string(let str):
-//                        if let obj = try? JSONDecoder.decode(UntypedMessage.self, from: str) {
-//                            self?.subject.send(.untyped(obj))
-//                        } else {
                     self?._subject.send(.string(str))
-//                        }
                 @unknown default:
                     self?._subject.send(.generic(message))
                 }
@@ -123,12 +116,9 @@ public class WebSocketPublisher: NSObject {
 
 // MARK: - Publishers.WSPublisher: URLSessionWebSocketDelegate
 
-// https://betterprogramming.pub/websockets-in-swift-using-urlsessions-websockettask-bc372c47a7b3
 extension WebSocketPublisher: URLSessionWebSocketDelegate {
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-//        connectionInProgress = true
         let event = WSEvent.connected(`protocol`)
-//        print("Opened session:", event)
         _subject.send(event)
         startListening()
     }
@@ -138,7 +128,6 @@ extension WebSocketPublisher: URLSessionWebSocketDelegate {
         
         let reasonStr = reason != nil ? String(data: reason!, encoding: .utf8) : nil
         let event = WSEvent.disconnected(closeCode, reasonStr)
-//        print("*2* Closed session:", closeCode.rawValue, reasonStr)
         _subject.send(event)
     }
 }
@@ -154,7 +143,6 @@ extension WebSocketPublisher {
         case data(Data)
         case string(String)
         case generic(URLSessionWebSocketTask.Message)
-        //    case cancelled
     }
     
     public enum WSErrors: Error {
@@ -162,7 +150,6 @@ extension WebSocketPublisher {
     }
 }
 
-// TODO: (real) Publisher type should store the UUID of the observer so it can be cancelled later
 // MARK: - URLSessionWebSocketTask Combine
 
 public extension URLSessionWebSocketTask {
