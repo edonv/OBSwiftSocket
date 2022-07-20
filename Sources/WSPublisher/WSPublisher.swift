@@ -59,6 +59,14 @@ public class WebSocketPublisher: NSObject {
             return Fail(error: WSErrors.noActiveConnection)
                 .eraseToAnyPublisher()
         }
+    /// Confirms that there is an active connection.
+    /// - Throws: `WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Returns: An unwrapped optional `webSocketTask`.
+    private func confirmConnection() throws -> URLSessionWebSocketTask {
+        guard let task = webSocketTask else { throw WSErrors.noActiveConnection }
+        return task
+    }
+    
         
         return Just(())
             .setFailureType(to: Error.self)
