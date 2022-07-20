@@ -17,21 +17,21 @@ extension WebSocketPublisher {
     /// - Parameter object: <#object description#>
     /// - Returns: <#description#>
     func send<T: Encodable>(_ object: T,
-                            encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) -> AnyPublisher<Void, Error> {
+                            encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) throws -> AnyPublisher<Void, Error> {
         switch encodingMode {
         case .json:
             guard let json = JSONEncoder.toString(from: object) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.json))
                     .eraseToAnyPublisher()
             }
-            return send(json)
+            return try send(json)
         
         case .msgPack:
             guard let msgData = try? MessagePackEncoder().encode(object) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.msgPack))
                     .eraseToAnyPublisher()
             }
-            return send(msgData)
+            return try send(msgData)
         }
     }
 }
