@@ -88,7 +88,7 @@ public protocol OBSRequest: Codable {
 }
 public protocol OBSRequestResponse: Codable {}
 
-public extension OBSRequest {
+extension OBSRequest {
     var type: Self.Type {
         Self.self
     }
