@@ -320,9 +320,8 @@ extension OBSSessionManager {
     /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
-        return publisherAnyOpCode
-            .filter { $0.operation == Op.opCode }
-            .tryCompactMap { try $0.messageData() as? Op }
+        return publisherAnyOpCodeData
+            .compactMap { $0 as? Op }
             .eraseToAnyPublisher()
     }
     
