@@ -5,3 +5,4 @@
 xcuserdata/
 *.xcscheme
 Package.resolved
+.swiftpm/
