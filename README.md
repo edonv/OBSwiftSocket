@@ -32,6 +32,10 @@ let package = Package(
 - iOS 13.0 or later
 - macOS 10.15 or later
 
+## Usage
+
+Examples coming soon!
+
 ## License
 
 `OBSwiftSocket` is released under the MIT license. See [LICENSE](https://github.com/edonv/OBSwiftSocket/blob/main/LICENSE) for details.
