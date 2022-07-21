@@ -379,6 +379,15 @@ public extension OpDataTypes.Request {
     }
 }
 
+public extension OpDataTypes.RequestBatch {
+    init(id: String, haltOnFailure: Bool? = nil, executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime, requests: [OpDataTypes.Request]) {
+        self.init(id: id,
+                  haltOnFailure: haltOnFailure,
+                  executionType: executionType,
+                  requests: requests.map { $0.forBatch() })
+    }
+}
+
 public extension OpDataTypes.RequestBatch.Request {
     init?<R: OBSRequest>(id: String? = UUID().uuidString, request: R?) {
         guard let d = request,
