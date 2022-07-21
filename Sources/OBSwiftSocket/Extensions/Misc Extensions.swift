@@ -12,8 +12,8 @@ import WSPublisher
 // MARK: - JSONDecoder/JSONEncoder
 
 enum CodingErrors: Error {
-    case failedToEncodeObject(OBSSessionManager.ConnectionData.MessageEncoding)
     case failedToDecodeObject(OBSSessionManager.ConnectionData.MessageEncoding)
+    case failedToEncodeObject(OBSSessionManager.ConnectionData.MessageEncoding)
 }
 
 extension JSONDecoder {
