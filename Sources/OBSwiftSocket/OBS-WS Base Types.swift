@@ -210,7 +210,7 @@ public enum OpDataTypes {
         
         /// Only the listed parameters may be changed after initial identification. To change a parameter not listed, you must reconnect to the obs-websocket server
         /// - ToDo: custom implementation for decode that if null = .all
-        var eventSubscriptions: OBSEnums.EventSubscription? = .all
+        var eventSubscriptions: OBSEnums.EventSubscription?
     }
     
     /// An event coming from OBS has occured. Eg scene switched, source muted.
