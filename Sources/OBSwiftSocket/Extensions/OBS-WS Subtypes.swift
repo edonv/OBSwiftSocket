@@ -7,28 +7,6 @@
 
 import Foundation
 
-extension OBSRequests.GetSceneList.Response {
-    public func typedScenes() throws -> [Scene] {
-        return try self.scenes.map { try $0.toCodable(Scene.self) }
-    }
-    
-    public struct Scene: Codable, Comparable {
-        public var sceneIndex: Int
-        public var sceneName: String
-        
-        public static func < (lhs: Scene, rhs: Scene) -> Bool {
-            return lhs.sceneIndex < rhs.sceneIndex
-        }
-    }
-}
-
-extension OBSEnums {
-    public enum SourceType: String, Codable {
-        case sceneOrGroup = "OBS_SOURCE_TYPE_SCENE"
-        case input = "OBS_SOURCE_TYPE_INPUT"
-    }
-}
-
 extension OBSRequests {
     public enum Subtypes {
         public struct SceneItem: Codable, Hashable {
@@ -46,6 +24,22 @@ extension OBSRequests {
     //            sourceType.image(isGroup: isGroup, inputKind: inputKind)
     //        }
         }
+        
+        public struct Scene: Codable, Comparable {
+            public var sceneIndex: Int
+            
+            public var sceneName: String
+            
+            public static func < (lhs: Scene, rhs: Scene) -> Bool {
+                return lhs.sceneIndex < rhs.sceneIndex
+            }
+        }
+    }
+}
+
+extension OBSRequests.GetSceneList.Response {
+    public func typedScenes() throws -> [OBSRequests.Subtypes.Scene] {
+        return try self.scenes.map { try $0.toCodable(OBSRequests.Subtypes.Scene.self) }
     }
 }
 
@@ -54,3 +48,11 @@ extension OBSRequests.GetSceneItemList.Response {
         return try self.sceneItems.map { try $0.toCodable(OBSRequests.Subtypes.SceneItem.self) }
     }
 }
+
+extension OBSEnums {
+    public enum SourceType: String, Codable {
+        case sceneOrGroup = "OBS_SOURCE_TYPE_SCENE"
+        case input = "OBS_SOURCE_TYPE_INPUT"
+    }
+}
+
