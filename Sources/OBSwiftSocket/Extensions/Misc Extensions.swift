@@ -99,7 +99,6 @@ extension Publisher {
     
     func asVoid() -> AnyPublisher<Void, Failure> {
         return self
-//            .ignoreOutput()
             .map { _ in () }
             .eraseToAnyPublisher()
     }
