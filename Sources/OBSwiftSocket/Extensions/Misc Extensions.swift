@@ -17,16 +17,16 @@ enum CodingErrors: Error {
 }
 
 extension JSONDecoder {
-    static func decode<T: Decodable>(_ type: T.Type, from string: String) throws -> T? {
+    func decode<T: Decodable>(_ type: T.Type, from string: String) throws -> T? {
         guard let data = string.data(using: .utf8) else { return nil }
-        let obj = try JSONDecoder().decode(T.self, from: data)
+        let obj = try self.decode(T.self, from: data)
         return obj
     }
 }
 
 extension JSONEncoder {
-    static func toString<T: Encodable>(from object: T) -> String? {
-        guard let data = try? JSONEncoder().encode(object) else { return nil }
+    func toString<T: Encodable>(from object: T) -> String? {
+        guard let data = try? self.encode(object) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 }
