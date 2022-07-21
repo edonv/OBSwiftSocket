@@ -124,22 +124,22 @@ extension UserDefaults.Key {
 }
 
 public extension UserDefaults {
+    func set<T: Encodable>(encodable: T, forKey deafultName: String) throws {
+        let data = try JSONEncoder().encode(encodable)
+        set(data, forKey: deafultName)
+    }
+    
     func set<T: Encodable>(encodable: T, forKey key: Key) throws {
         try set(encodable: encodable, forKey: key.rawValue)
     }
     
-    func set<T: Encodable>(encodable: T, forKey key: String) throws {
-        let data = try JSONEncoder().encode(encodable)
-        set(data, forKey: key)
+    func decodable<T: Decodable>(_ type: T.Type, forKey deafultName: String) throws -> T? {
+        guard let data = object(forKey: deafultName) as? Data else { return nil }
+        let obj = try JSONDecoder().decode(T.self, from: data)
+        return obj
     }
     
     func decodable<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T? {
         return try decodable(type, forKey: key.rawValue)
-    }
-    
-    func decodable<T: Decodable>(_ type: T.Type, forKey key: String) throws -> T? {
-        guard let data = object(forKey: key) as? Data else { return nil }
-        let obj = try JSONDecoder().decode(T.self, from: data)
-        return obj
     }
 }
