@@ -308,7 +308,7 @@ extension OBSSessionManager {
     /// received from the server. The `data` is mapped to an instace of the `OBSOpData` protocol.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
         return publisherAnyOpCode
-            .tryCompactMap { try $0.messageData() }
+            .tryMap { try $0.messageData() }
             .eraseToAnyPublisher()
     }
     
