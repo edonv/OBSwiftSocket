@@ -246,7 +246,7 @@ public enum OpDataTypes {
             case data = "requestData"
         }
         
-        func forBatch() -> RequestBatch.Request {
+        public func forBatch() -> RequestBatch.Request {
             return .init(type: type, id: id, data: data)
         }
         
