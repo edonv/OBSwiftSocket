@@ -12,8 +12,15 @@ import MessagePacker
 
 /// Manages connection sessions with OBS.
 public final class OBSSessionManager: ObservableObject {
-    public init(connectionData: ConnectionData) {
+    /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
+    public init() {
         self.wsPublisher = WebSocketPublisher()
+    }
+    
+    /// Initializes an `OBSSessionManager` with `ConnectionData`.
+    /// - Parameter connectionData: The `ConnectionData` to initialize.
+    public convenience init(connectionData: ConnectionData) {
+        self.init()
         self.connectionData = connectionData
     }
     
@@ -21,7 +28,7 @@ public final class OBSSessionManager: ObservableObject {
     public var wsPublisher: WebSocketPublisher
     
     /// Data for creating connection to OBS-WS.
-    public var connectionData: ConnectionData
+    public var connectionData: ConnectionData?
     
     /// Contains any active `Combine` `Cancellable`s.
     private var observers = Set<AnyCancellable>()
@@ -33,12 +40,12 @@ public final class OBSSessionManager: ObservableObject {
     
     /// Returns the `password` from `connectionData` if one is set.
     public var password: String? {
-        connectionData.password
+        connectionData?.password
     }
     
     /// Returns the encoding mode used for communicating with OBS.
     public var encodingProtocol: ConnectionData.MessageEncoding {
-        connectionData.encodingProtocol ?? .json
+        connectionData?.encodingProtocol ?? .json
     }
     
     @Published var isStudioModeEnabled: Bool = false
@@ -101,7 +108,9 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` that completed upon connecting successfully. If connection process fails,
     /// it completes with an `Error`.
     public func connect(persistConnectionData: Bool = true,
-                        events: OBSEnums.EventSubscription? = nil) -> AnyPublisher<Void, Error> {
+                        events: OBSEnums.EventSubscription? = nil) throws -> AnyPublisher<Void, Error> {
+        guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
+        
         // Set up listeners/publishers before starting connection.
         defer {
             wsPublisher.connect(with: connectionData.urlRequest!)
@@ -534,7 +543,10 @@ extension OBSSessionManager {
 internal extension OBSSessionManager {
     /// Errors pertaining to `OBSSessionManager`.
     enum Errors: Error {
-        /// Thrown when a connection is closed.
+        /// Thrown when the session is instructed to connect without `ConnectionData`.
+        case noConnectionData
+        
+        /// Thrown when a connection has been closed.
         case disconnected(_ closeCode: OBSEnums.CloseCode?, _ reason: String?)
         
         /// Thrown during authentication process when OBS requires a password, but the user didn't supply one.
