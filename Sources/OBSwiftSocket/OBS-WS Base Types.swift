@@ -219,7 +219,6 @@ public enum OpDataTypes {
     public struct Event: OBSOpData {
         public static var opCode: OBSEnums.OpCode { .event }
         
-        /// - ToDo: Make this `E.type` or something?
         var type: OBSEvents.AllTypes
         var intent: OBSEnums.EventSubscription
         var data: JSONValue
@@ -238,7 +237,6 @@ public enum OpDataTypes {
         public static var opCode: OBSEnums.OpCode { .request }
         
         var type: OBSRequests.AllTypes
-//        var type: R.Type
         var id: String
         var data: JSONValue?
         
@@ -268,7 +266,6 @@ public enum OpDataTypes {
         var id: String
         var status: Status
         var data: JSONValue?
-        //            var data: OBSRequest.ResponseType
         
         struct Status: Codable {
             /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100). `false` if otherwise.
