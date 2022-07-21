@@ -21,7 +21,7 @@ extension WebSocketPublisher {
                             encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) throws -> AnyPublisher<Void, Error> {
         switch encodingMode {
         case .json:
-            guard let json = JSONEncoder.toString(from: message) else {
+            guard let json = JSONEncoder().toString(from: message) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.json))
                     .eraseToAnyPublisher()
             }

@@ -297,7 +297,7 @@ extension OBSSessionManager {
                 case .data(let d):
                     return try? MessagePackDecoder().decode(UntypedMessage.self, from: d)
                 case .string(let str):
-                    return try? JSONDecoder.decode(UntypedMessage.self, from: str)
+                    return try? JSONDecoder().decode(UntypedMessage.self, from: str)
                 default:
                     return nil
                 }
