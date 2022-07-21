@@ -22,12 +22,6 @@ extension JSONDecoder {
         let obj = try JSONDecoder().decode(T.self, from: data)
         return obj
     }
-    
-    static func decode<T: Decodable>(_ type: T.Type, from dict: [String: Any]) throws -> T {
-        let data = try JSONSerialization.data(withJSONObject: dict)
-        let obj = try JSONDecoder().decode(T.self, from: data)
-        return obj
-    }
 }
 
 extension JSONEncoder {
