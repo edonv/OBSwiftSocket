@@ -12,9 +12,11 @@ import CommonCrypto
 
 // MARK: - Messages
 
-/// - ToDo: Custom Decodable that uses the `operation` property to know which `MessageType` to use.
+/// A general type used for easier receipt of messages without having to cast immediately.
 public struct UntypedMessage: Codable {
+    /// The type of message.
     public var operation: OBSEnums.OpCode
+    /// The body of the message. Its structure varies based on the type of message (`operation`).
     public var data: JSONValue
     
     enum CodingKeys: String, CodingKey {
@@ -22,6 +24,12 @@ public struct UntypedMessage: Codable {
         case data = "d"
     }
     
+    /// Attempts to cast an `UntypedMessage`'s `data` property (`JSONValue`) to the appropriate type.
+    ///
+    /// It tries to do this based on the value of the `operation` property. To ensure consistent
+    /// error-throwing, all `try` calls in the function are optionals, allowing for throwing a custom
+    /// - Throws: `UntypedMessage.Errors.unableToCastData` if unable to cast successfully.
+    /// - Returns: A successfully casted instance of `data`.
     public func messageData() throws -> OBSOpData {
         let casted: OBSOpData?
         
@@ -64,8 +72,11 @@ public struct UntypedMessage: Codable {
     }
 }
 
+/// A type used for sending and receiving information to and from OBS.
 public struct Message<Body: OBSOpData>: Codable {
+    /// The type of message.
     public var operation: OBSEnums.OpCode
+    /// The body of the message.
     public var data: Body
     
     public init(data: Body) {
@@ -82,60 +93,83 @@ public struct Message<Body: OBSOpData>: Codable {
 
 // MARK: - Protocols
 
-// MARK: OBSRequest
+/// All types of Requests conform to this.
 public protocol OBSRequest: Codable {
+    /// The expected type of Response.
     associatedtype ResponseType: OBSRequestResponse
 }
+/// All types of `OBSRequest.ResponseType`s conform to this.
 public protocol OBSRequestResponse: Codable {}
 
 extension OBSRequest {
+    /// Self's metatype.
     var type: Self.Type {
         Self.self
     }
+    
+    /// Self's metatype as a string.
     var typeName: String {
         String(describing: self)
             .replacingOccurrences(of: #"\(.*\)"#, with: "", options: .regularExpression)
     }
+    
+    /// Enum representation of its own `OBSRequest` type.
     var typeEnum: OBSRequests.AllTypes? {
         return OBSRequests.AllTypes.init(rawValue: typeName)
     }
+    
+    /// Self's `ResponseType` metatype.
     var responseType: ResponseType.Type {
         Self.ResponseType.self
     }
 }
 
-// MARK: OBSEvent
+/// All types of Events conform to this.
 public protocol OBSEvent: Codable {}
 
 public extension OBSEvent {
+    /// Self's metatype.
     var type: Self.Type {
         Self.self
     }
+    
+    /// Self's metatype as a string.
     static var typeName: String {
         String(describing: self)
             .replacingOccurrences(of: #"\(.*\)"#, with: "", options: .regularExpression)
     }
+    
+    /// Enum representation of its own `OBSRequest` type.
     static var typeEnum: OBSEvents.AllTypes? {
         return OBSEvents.AllTypes(rawValue: typeName)
     }
 }
 
 // MARK: - OpData Types
+
+/// All Message bodies (`Message.data`) conform to this. They are the low-level message
+/// types which may be sent to and from `obs-websocket`.
 public protocol OBSOpData: Codable {
+    /// The enum/numerical representation of the message type.
     static var opCode: OBSEnums.OpCode { get }
 }
 
+/// Namespaces for all `Message` body types.
+/// Adapted from the [official documentation](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#message-types-opcodes).
 public enum OpDataTypes {
-    /// First message sent from the server immediately on client connection. Contains authentication information if auth is required. Also contains RPC version for version negotiation.
+    /// First message sent from the server immediately on client connection. Contains authentication
+    /// information if auth is required. Also contains RPC version for version negotiation.
     ///
-    /// https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#hello-opcode-0
-    /// - **Sent from:** obs-websocket
-    /// - **Sent to:** Freshly connected websocket client
+    /// - Sent From: `obs-websocket`
+    /// - Sent To: Freshly connected websocket client
     public struct Hello: OBSOpData {
         public static var opCode: OBSEnums.OpCode = .hello
         
         var obsWebSocketVersion: String
-        /// `rpcVersion` is a version number which gets incremented on each breaking change to the obs-websocket protocol. Its usage in this context is to provide the current rpc version that the server would like to use.
+        
+        /// `rpcVersion` is a version number which gets incremented on each breaking change to the
+        /// `obs-websocket` protocol. Its usage in this context is to provide the current rpc version
+        /// that the server would like to use.
         var rpcVersion: Int
         var authentication: Authentication?
         
@@ -144,6 +178,15 @@ public enum OpDataTypes {
             var salt: String
         }
         
+        /// Maps the `Hello` instance to a new `Identify` message body.
+        /// - Parameters:
+        ///   - password: If provided, it's used with `authentication` to create a final
+        ///   authentication string.
+        ///   - events: If provided, this tells `obs-websocket` that it's interested in being
+        ///   alerted about those categories of `OBSEvents`.
+        /// - Throws: `OBSSessionManager.Errors.missingPasswordWhereRequired` if `authentication`
+        /// is present without a provided password.`
+        /// - Returns: A new `Identify` message body with the generated authentication string.
         func toIdentify(password: String?, subscribeTo events: OBSEnums.EventSubscription?) throws -> Identify {
             var auth: String? = nil
             
@@ -177,47 +220,59 @@ public enum OpDataTypes {
         }
     }
     
-    /// Response to `Hello` message, should contain authentication string if authentication is required, along with PubSub subscriptions and other session parameters.
-    /// - **Sent from:** Freshly connected websocket client
-    /// - **Sent to:** obs-websocket
+    /// Response to `Hello` message, should contain authentication string if authentication
+    /// is required, along with PubSub subscriptions and other session parameters.
+    ///
+    /// - Sent From: Freshly connected websocket client
+    /// - Sent To: `obs-websocket`
     public struct Identify: OBSOpData {
         public static var opCode: OBSEnums.OpCode = .identify
         
-        /// `rpcVersion` is the version number that the client would like the obs-websocket server to use.
+        /// `rpcVersion` is the version number that the client would like the `obs-websocket` server to use.
         var rpcVersion: Int
         var authentication: String?
-        /// `eventSubscriptions` is a bitmask of `EventSubscriptions` items to subscribe to events and event categories at will. By default, all event categories are subscribed, except for events marked as high volume. High volume events must be explicitly subscribed to.
+        
+        /// `eventSubscriptions` is a bitmask of `EventSubscription` items to subscribe to
+        /// events and event categories at will. By default, all event categories are subscribed,
+        /// except for events marked as high volume. High volume events must be explicitly subscribed to.
         var eventSubscriptions: OBSEnums.EventSubscription?
     }
     
-    /// The identify request was received and validated, and the connection is now ready for normal operation.
-    /// - **Sent from:** obs-websocket
-    /// - **Sent to:** Freshly identified client
+    /// The identify request was received and validated, and the connection is now ready for
+    /// normal operation.
+    ///
+    /// If rpc version negotiation succeeds, the server determines the RPC version to be used
+    /// and gives it to the client as `negotiatedRpcVersion`
+    /// - Sent From: `obs-websocket`
+    /// - Sent To: Freshly identified client
     public struct Identified: OBSOpData {
         public static var opCode: OBSEnums.OpCode = .identified
         
-        /// If rpc version negotiation succeeds, the server determines the RPC version to be used and gives it to the client as `negotiatedRpcVersion`
         var negotiatedRpcVersion: Int
     }
     
     /// Sent at any time after initial identification to update the provided session parameters.
-    /// - **Sent from:** Identified client
-    /// - **Sent to:** obs-websocket
+    ///
+    /// Only the listed parameters may be changed after initial identification. To change
+    /// a parameter not listed, you must reconnect to the `obs-websocket` server
+    /// - Sent From: Identified client
+    /// - Sent To: `obs-websocket`
     public struct Reidentify: OBSOpData {
         public static var opCode: OBSEnums.OpCode = .reidentify
         
-        /// Only the listed parameters may be changed after initial identification. To change a parameter not listed, you must reconnect to the obs-websocket server
-        /// - ToDo: custom implementation for decode that if null = .all
         var eventSubscriptions: OBSEnums.EventSubscription?
     }
     
     /// An event coming from OBS has occured. Eg scene switched, source muted.
-    /// - **Sent from:** obs-websocket
-    /// - **Sent to:** All subscribed and identified clients
+    ///
+    /// - Sent From: `obs-websocket`
+    /// - Sent To: All subscribed and identified clients
     public struct Event: OBSOpData {
         public static var opCode: OBSEnums.OpCode { .event }
         
         var type: OBSEvents.AllTypes
+        
+        /// The original intent required to be subscribed to in order to receive the event
         var intent: OBSEnums.EventSubscription
         var data: JSONValue
         
@@ -228,9 +283,10 @@ public enum OpDataTypes {
         }
     }
     
-    /// Client is making a request to obs-websocket. Eg get current scene, create source.
-    /// - **Sent from:** Identified client
-    /// - **Sent to:** obs-websocket
+    /// Client is making a request to `obs-websocket`. Eg get current scene, create source.
+    ///
+    /// - Sent From: Identified client
+    /// - Sent To: `obs-websocket`
     public struct Request: OBSOpData {
         public static var opCode: OBSEnums.OpCode { .request }
         
@@ -244,6 +300,8 @@ public enum OpDataTypes {
             case data = "requestData"
         }
         
+        /// Maps it to the appropriate format for a `RequestBatch`.
+        /// - Returns: Mapped `OpDataTypes.RequestBatch.Request`.
         public func forBatch() -> RequestBatch.Request {
             return .init(type: type, id: id, data: data)
         }
@@ -254,9 +312,10 @@ public enum OpDataTypes {
 //            }
     }
     
-    /// obs-websocket is responding to a request coming from a client.
-    /// - **Sent from:** obs-websocket
-    /// - **Sent to:** Identified client which made the request
+    /// `obs-websocket` is responding to a request coming from a client.
+    ///
+    /// - Sent From: `obs-websocket`
+    /// - Sent To: Identified client which made the request
     public struct RequestResponse: OBSOpData, OBSRequestResponse {
         public static var opCode: OBSEnums.OpCode { .requestResponse }
         
@@ -266,10 +325,13 @@ public enum OpDataTypes {
         var data: JSONValue?
         
         struct Status: Codable {
-            /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100). `false` if otherwise.
+            /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100).
+            /// `false` if otherwise.
             var result: Bool
+            
             var code: OBSEnums.RequestStatus
-            /// `comment` may be provided by the server on errors to offer further details on why a request failed.
+            
+            /// May be provided by the server on errors to offer further details on why a request failed.
             var comment: String?
         }
         
@@ -280,23 +342,30 @@ public enum OpDataTypes {
             case data = "responseData"
         }
         
-        //            func dataTyped<R: OBSRequest>() -> R? {
-        //                guard let d = data else { return nil }
-        //                return OBSRequests.AllTypes.request(ofType: type, from: d) as? R
-        //            }
+//            func dataTyped<R: OBSRequest>() -> R? {
+//                guard let d = data else { return nil }
+//                return OBSRequests.AllTypes.request(ofType: type, from: d) as? R
+//            }
     }
     
-    /// Client is making a batch of requests for obs-websocket. Requests are processed serially (in order) by the server.
-    /// - **Sent from:** Identified client
-    /// - **Sent to:** obs-websocket
+    /// Client is making a batch of requests for `obs-websocket`. Requests are processed
+    /// serially (in order) by the server.
+    ///
+    /// - Sent From: Identified client
+    /// - Sent To: `obs-websocket`
     public struct RequestBatch: OBSOpData {
         public static var opCode: OBSEnums.OpCode { .requestBatch }
         
         var id: String
-        /// When `haltOnFailure` is `true`, the processing of requests will be halted on first failure. Returns only the processed requests in `RequestBatchResponse`. Defaults to `false`.
+        
+        /// When `haltOnFailure` is `true`, the processing of requests will be halted on first failure.
+        /// Returns only the processed requests in `RequestBatchResponse`. Defaults to `false`.
         var haltOnFailure: Bool?
+        
         var executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime
-        /// Requests in the `requests` array follow the same structure as the `Request` payload data format, however `requestId` is an optional field.
+        
+        /// Requests in the `requests` array follow the same structure as the `Request` payload data
+        /// format, however `id` is an optional field.
         var requests: [Request]
         
         enum CodingKeys: String, CodingKey {
@@ -306,6 +375,7 @@ public enum OpDataTypes {
             case requests
         }
         
+        /// Identical to `OpDataTypes.Request`, except `id` is optional.
         public struct Request: Codable, Hashable {
             var type: OBSRequests.AllTypes
             var id: String?
@@ -319,9 +389,10 @@ public enum OpDataTypes {
         }
     }
     
-    /// obs-websocket is responding to a request batch coming from the client.
-    /// - **Sent from:** obs-websocket
-    /// - **Sent to:** Identified client which made the request
+    /// `obs-websocket` is responding to a request batch coming from the client.
+    ///
+    /// - Sent From: `obs-websocket`
+    /// - Sent To: Identified client which made the request
     public struct RequestBatchResponse: OBSOpData {
         public static var opCode: OBSEnums.OpCode { .requestBatchResponse }
         
@@ -333,6 +404,7 @@ public enum OpDataTypes {
             case results
         }
         
+        /// Identical to `OpDataTypes.RequestResponse`, except `id` is optional.
         public struct Response: Codable, OBSRequestResponse {
             var type: OBSRequests.AllTypes
             var id: String?
@@ -371,6 +443,11 @@ public enum OpDataTypes {
 }
 
 public extension OpDataTypes.Request {
+    /// Initializes from type enum and a typed `OBSRequest` object.
+    /// - Parameters:
+    ///   - type: Request type enum.
+    ///   - id: Request ID.
+    ///   - request: Request object.
     init?<R: OBSRequest>(type: OBSRequests.AllTypes, id: String, request: R?) {
         guard let d = request else { return nil }
         self.type = type
