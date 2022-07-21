@@ -48,7 +48,6 @@ public struct UntypedMessage: Codable {
         case .requestResponse:
             casted = try? data.toCodable(OpDataTypes.RequestResponse.self)
         case .requestBatch:
-        //                    return nil
             casted = try? data.toCodable(OpDataTypes.RequestBatch.self)
         case .requestBatchResponse:
             casted = try? data.toCodable(OpDataTypes.RequestBatchResponse.self)
