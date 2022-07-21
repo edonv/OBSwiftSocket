@@ -794,8 +794,7 @@ func generateProtocol() {
         forResource: "Resources/protocol",
         withExtension: "json"
     )!
-//        let protocolJson = URL(fileURLWithPath: "./Resources/OBS-WS Protocol.json")
-
+    
     let data = try! Data(contentsOf: protocolJson, options: .mappedIfSafe)
     
     let decoder = JSONDecoder()
