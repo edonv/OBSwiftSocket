@@ -227,7 +227,7 @@ extension OBSSessionManager {
     ///
     /// The Requests can be created from different types of `OBSRequest`s.
     /// - Parameters:
-    ///   - executionType: The method by which WebSocket-OBS should execute the request batch.
+    ///   - executionType: The method by which `obs-websocket` should execute the request batch.
     ///   - requests: An array of `OpDataTypes.RequestBatch.Request`s. Unlike the other overload of
     ///   `sendRequestBatch(executionType:requests:)`, these can be different types of `Request`s.
     ///   This can most easily be done by using the `OpDataTypes.RequestBatch.Request(id:request:)`
@@ -251,7 +251,7 @@ extension OBSSessionManager {
     ///
     /// The Requests have to be the same type of `OBSRequest`.
     /// - Parameters:
-    ///   - executionType: The method by which WebSocket-OBS should execute the request batch.
+    ///   - executionType: The method by which `obs-websocket` should execute the request batch.
     ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests`
     ///   must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched
     ///   up with their responses in the returned `Dictionary`.
@@ -441,7 +441,7 @@ extension OBSSessionManager {
 }
 
 extension OBSSessionManager {
-    /// A container type for managing information for connecting to OBS-WebSocket.
+    /// A container type for managing information for connecting to `obs-websocket`.
     public struct ConnectionData: Codable {
         static let encodingProtocolHeaderKey = "Sec-WebSocket-Protocol"
         
@@ -456,11 +456,11 @@ extension OBSSessionManager {
         
         /// URL scheme to use.
         public var scheme: String
-        /// IP address of the OBS-WebSocket server.
+        /// IP address of the `obs-websocket` server.
         public var ipAddress: String
-        /// Port number of the OBS-WebSocket server.
+        /// Port number of the `obs-websocket` server.
         public var port: Int
-        /// Password for OBS-WebSocket connection, if authentication is turned on.
+        /// Password for `obs-websocket` connection, if authentication is turned on.
         public var password: String?
         /// Which method of encoding messages the connection should use.
         public var encodingProtocol: MessageEncoding?
