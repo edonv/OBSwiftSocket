@@ -14,8 +14,8 @@ import CommonCrypto
 
 /// - ToDo: Custom Decodable that uses the `operation` property to know which `MessageType` to use.
 public struct UntypedMessage: Codable {
-    var operation: OBSEnums.OpCode
-    var data: JSONValue
+    public var operation: OBSEnums.OpCode
+    public var data: JSONValue
     
     enum CodingKeys: String, CodingKey {
         case operation = "op"
