@@ -123,8 +123,6 @@ public extension OBSEvent {
 // MARK: - OpData Types
 public protocol OBSOpData: Codable {
     static var opCode: OBSEnums.OpCode { get }
-    //    var operation: Codes.Operation
-    //    var data: JSONValue
 }
 
 public enum OpDataTypes {
