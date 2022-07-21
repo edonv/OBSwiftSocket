@@ -22,35 +22,46 @@ public struct UntypedMessage: Codable {
         case data = "d"
     }
     
-    func messageData() throws -> OBSOpData? {
+    public func messageData() throws -> OBSOpData {
+        let casted: OBSOpData?
+        
         switch operation {
         case .hello:
-            return try data.toCodable(OpDataTypes.Hello.self)
+            casted = try? data.toCodable(OpDataTypes.Hello.self)
         case .identify:
-            return try data.toCodable(OpDataTypes.Identify.self)
+            casted = try? data.toCodable(OpDataTypes.Identify.self)
         case .identified:
-            return try data.toCodable(OpDataTypes.Identified.self)
+            casted = try? data.toCodable(OpDataTypes.Identified.self)
         case .reidentify:
-            return try data.toCodable(OpDataTypes.Reidentify.self)
+            casted = try? data.toCodable(OpDataTypes.Reidentify.self)
         case .event:
-            return try data.toCodable(OpDataTypes.Event.self)
+            casted = try? data.toCodable(OpDataTypes.Event.self)
         case .request:
             // Get name of request
             guard case .string(let requestTypeName) = data[dynamicMember: OpDataTypes.Request.CodingKeys.type.rawValue],
                   let requestType = OBSRequests.AllTypes(rawValue: requestTypeName),
                   case .string(let id) = data[dynamicMember: OpDataTypes.Request.CodingKeys.id.rawValue],
                   let data = data[dynamicMember: OpDataTypes.Request.CodingKeys.data.rawValue]
-            else { return nil }
+            else { casted = nil; break }
             
-            return OpDataTypes.Request(type: requestType, id: id, data: data)
+            casted = OpDataTypes.Request(type: requestType, id: id, data: data)
         case .requestResponse:
-            return try data.toCodable(OpDataTypes.RequestResponse.self)
+            casted = try? data.toCodable(OpDataTypes.RequestResponse.self)
         case .requestBatch:
-            return try data.toCodable(OpDataTypes.RequestBatch.self)
         //                    return nil
+            casted = try? data.toCodable(OpDataTypes.RequestBatch.self)
         case .requestBatchResponse:
-            return try data.toCodable(OpDataTypes.RequestBatchResponse.self)
+            casted = try? data.toCodable(OpDataTypes.RequestBatchResponse.self)
         }
+        
+        guard let c = casted else { throw Errors.unableToCastBody(operation: operation) }
+        return c
+    }
+    
+    /// Errors pertaining to `UntypedMessage`.
+    enum Errors: Error {
+        /// Thrown when unable to cast message body successfully.
+        case unableToCastBody(operation: OBSEnums.OpCode)
     }
 }
 
