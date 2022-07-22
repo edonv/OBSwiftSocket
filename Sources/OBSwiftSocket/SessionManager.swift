@@ -423,7 +423,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided type.
     public func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
-        guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion }
+        guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion(eventType.self) }
         return try listenForEvent(type, firstOnly: firstOnly)
             .compactMap { $0 as? E }
             .eraseToAnyPublisher()
@@ -561,6 +561,6 @@ extension OBSSessionManager {
         
         /// Thrown from `listenForEvent(_:firstOnly:)` when an `OBSEvent` type is unsuccessfully converted to
         /// an `OBSEvent.AllTypes` case.
-        case failedEventTypeConversion
+        case failedEventTypeConversion(OBSEvent.Type)
     }
 }
