@@ -542,7 +542,7 @@ extension OBSSessionManager {
 
 extension OBSSessionManager {
     /// Errors pertaining to `OBSSessionManager`.
-    public enum Errors: Error {
+    public enum Errors: Error, CustomStringConvertible {
         /// Thrown when the session is instructed to connect without `ConnectionData`.
         case noConnectionData
         
@@ -562,5 +562,22 @@ extension OBSSessionManager {
         /// Thrown from `listenForEvent(_:firstOnly:)` when an `OBSEvent` type is unsuccessfully converted to
         /// an `OBSEvent.AllTypes` case.
         case failedEventTypeConversion(OBSEvent.Type)
+        
+        public var description: String {
+            switch self {
+            case .noConnectionData:
+                return "A connection was attempted without any ConnectionData."
+            case .disconnected(_, let reason):
+                return "The connection was closed." + (reason != nil ? " " + reason! : "")
+            case .missingPasswordWhereRequired:
+                return "OBS requires a password and one wasn't given."
+            case .requestResponseNotSuccess(let status):
+                return "Request was unsuccessful. \(status)"
+            case .buildingRequest:
+                return "Failed to build OBSRequest message."
+            case .failedEventTypeConversion(let eventType):
+                return "Failed to convert event type when attemping to listen for a(n) \(eventType.typeName) event."
+            }
+        }
     }
 }
