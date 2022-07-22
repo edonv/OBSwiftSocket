@@ -324,7 +324,7 @@ public enum OpDataTypes {
         var status: Status
         var data: JSONValue?
         
-        struct Status: Codable {
+        public struct Status: Codable {
             /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100).
             /// `false` if otherwise.
             var result: Bool
