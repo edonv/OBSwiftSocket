@@ -540,9 +540,9 @@ extension OBSSessionManager {
 
 // MARK: - Errors
 
-internal extension OBSSessionManager {
+extension OBSSessionManager {
     /// Errors pertaining to `OBSSessionManager`.
-    enum Errors: Error {
+    public enum Errors: Error {
         /// Thrown when the session is instructed to connect without `ConnectionData`.
         case noConnectionData
         
