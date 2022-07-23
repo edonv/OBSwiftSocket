@@ -105,6 +105,8 @@ extension OBSSessionManager {
     /// - Parameters:
     ///   - persistConnectionData: Whether `connectionData` should be persisted if connected successfully.
     ///   - events: Bit mask (`OptionSet`) of which `OBSEvents` to be alerted of.
+    /// - Throws: Can throw `Errors.noConnectionData` if there is no connectionData set.
+    /// Can also throw `Errors.alreadyConnected` if `wsPublisher` is already running.
     /// - Returns: A `Publisher` that completed upon connecting successfully. If connection process fails,
     /// it completes with an `Error`.
     public func connect(persistConnectionData: Bool = true,
