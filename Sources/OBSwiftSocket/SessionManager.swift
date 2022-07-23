@@ -130,9 +130,8 @@ extension OBSSessionManager {
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
                                          self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self)) }
             .timeout(.seconds(10), scheduler: DispatchQueue.main, customError: { Errors.timedOutWaitingToConnect })
-            .map(\.1)
+            .asVoid()
             
-            .tryFlatMap { _ in try self.getInitialData() }
             .handleEvents(receiveCompletion: { [weak self] result in
                 switch result {
                 case .finished:
