@@ -459,7 +459,7 @@ extension OBSSessionManager {
 
 extension OBSSessionManager {
     /// A container type for managing information for connecting to `obs-websocket`.
-    public struct ConnectionData: Codable {
+    public struct ConnectionData: Codable, Equatable {
         static let encodingProtocolHeaderKey = "Sec-WebSocket-Protocol"
         
         /// Memberwise initializer.
