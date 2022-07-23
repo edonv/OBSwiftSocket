@@ -151,7 +151,7 @@ extension OBSSessionManager {
     }
     
     // TODO: Keep or toss this?
-    public func getInitialData() throws -> AnyPublisher<Void, Error> {
+    private func getInitialData() throws -> AnyPublisher<Void, Error> {
         // Uses direct calls to `wsPub.sendRequest` because local one would be waiting until connected
         let studioModeReq = try sendRequest(OBSRequests.GetStudioModeEnabled())
             .map(\.studioModeEnabled)
