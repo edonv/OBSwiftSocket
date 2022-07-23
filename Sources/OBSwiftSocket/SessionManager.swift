@@ -141,7 +141,11 @@ extension OBSSessionManager {
                     try? self?.addObservers()
                     
                 case .failure(let err):
-                    self?.wsPublisher.disconnect()
+                    var reason: String? = nil
+                    if let error = err as? Errors {
+                        reason = error.description
+                    }
+                    self?.wsPublisher.disconnect(reason: reason)
                 }
             })
             .eraseToAnyPublisher()
