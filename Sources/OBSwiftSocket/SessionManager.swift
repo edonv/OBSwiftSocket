@@ -112,12 +112,8 @@ extension OBSSessionManager {
         guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
         
         // Set up listeners/publishers before starting connection.
-        defer {
-            wsPublisher.connect(with: connectionData.urlRequest!)
-        }
-        
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
-        return publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
+        let connectionChain = publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
             
             // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
             
@@ -149,6 +145,9 @@ extension OBSSessionManager {
                 }
             })
             .eraseToAnyPublisher()
+        
+        wsPublisher.connect(with: connectionData.urlRequest!)
+        return connectionChain
     }
     
     // TODO: Keep or toss this?
