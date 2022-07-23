@@ -571,7 +571,8 @@ extension OBSSessionManager {
         /// an `OBSEvent.AllTypes` case.
         case failedEventTypeConversion(OBSEvent.Type)
         
-        /// Thrown from `connect` if too much time has passed waiting for the connection process.
+        /// Thrown from `connect(persistConnectionData:events:)` if too much time has passed
+        /// waiting for the connection process.
         case timedOutWaitingToConnect
         
         public var description: String {
