@@ -111,6 +111,10 @@ extension OBSSessionManager {
                         events: OBSEnums.EventSubscription? = nil) throws -> AnyPublisher<Void, Error> {
         guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
         
+        // This just checks to see if the WSPublisher has already started its connection process.
+        // It also might already be connected.
+        guard !isConnected else { throw Errors.alreadyConnected }
+        
         // Set up listeners/publishers before starting connection.
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
         let connectionChain = publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
@@ -553,6 +557,10 @@ extension OBSSessionManager {
         /// Thrown when the session is instructed to connect without `ConnectionData`.
         case noConnectionData
         
+        /// Thrown from `connect(persistConnectionData:events:)` if `wsPublisher` is already
+        /// connected to OBS.
+        case alreadyConnected
+        
         /// Thrown when a connection has been closed.
         case disconnected(_ closeCode: OBSEnums.CloseCode?, _ reason: String?)
         
@@ -578,6 +586,8 @@ extension OBSSessionManager {
             switch self {
             case .noConnectionData:
                 return "A connection was attempted without any ConnectionData."
+            case .alreadyConnected:
+                return "Cannot start connection because the client is already connected to OBS."
             case .disconnected(_, let reason):
                 return "The connection was closed." + (reason != nil ? " " + reason! : "")
             case .missingPasswordWhereRequired:
