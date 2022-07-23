@@ -569,6 +569,9 @@ extension OBSSessionManager {
         /// an `OBSEvent.AllTypes` case.
         case failedEventTypeConversion(OBSEvent.Type)
         
+        /// Thrown from `connect` if too much time has passed waiting for the connection process.
+        case timedOutWaitingToConnect
+        
         public var description: String {
             switch self {
             case .noConnectionData:
@@ -583,6 +586,8 @@ extension OBSSessionManager {
                 return "Failed to build OBSRequest message."
             case .failedEventTypeConversion(let eventType):
                 return "Failed to convert event type when attemping to listen for a(n) \(eventType.typeName) event."
+            case .timedOutWaitingToConnect:
+                return "Connection process has timed out."
             }
         }
     }
