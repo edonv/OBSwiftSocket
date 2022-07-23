@@ -36,10 +36,6 @@ extension OBSRequests {
             /// For `SourceType.sceneOrGroup`, this dictates if it is a group.
             /// For `SourceType.input`, this is `nil`.
             public var isGroup: Bool?
-            
-    //        public var image: UIImage? {
-    //            sourceType.image(isGroup: isGroup, inputKind: inputKind)
-    //        }
         }
         
         /// A scene in OBS.
