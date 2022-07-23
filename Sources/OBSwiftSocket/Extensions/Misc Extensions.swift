@@ -87,7 +87,7 @@ extension Excludable: Decodable {
 
 extension Future {
     /// Initializes a new `Future` that immediately completes with the provided `value`.
-    /// - Parameter value: <#value description#>
+    /// - Parameter value: An `Output` that the new `Future` should complete with.
     convenience init(withValue value: Output) {
         self.init { promise in
             promise(.success(value))
