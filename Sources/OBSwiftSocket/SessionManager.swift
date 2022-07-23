@@ -144,7 +144,10 @@ extension OBSSessionManager {
                     var reason: String? = nil
                     if let error = err as? Errors {
                         reason = error.description
+                    } else {
+                        reason = err.localizedDescription
                     }
+                    
                     self?.wsPublisher.disconnect(reason: reason)
                 }
             })
