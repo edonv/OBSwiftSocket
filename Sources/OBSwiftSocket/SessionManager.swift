@@ -114,6 +114,7 @@ extension OBSSessionManager {
         // Set up listeners/publishers before starting connection.
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
         let connectionChain = publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
+            .timeout(.seconds(10), scheduler: DispatchQueue.main, customError: { Errors.timedOutWaitingToConnect })
             
             // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
             
@@ -128,6 +129,7 @@ extension OBSSessionManager {
             //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
                                          self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self)) }
+            .timeout(.seconds(10), scheduler: DispatchQueue.main, customError: { Errors.timedOutWaitingToConnect })
             .map(\.1)
             
             .tryFlatMap { _ in try self.getInitialData() }
