@@ -12,6 +12,15 @@ extension OBSRequests {
     public enum Subtypes {
         /// An item within a scene. Not an input, but a *usage* of an input in a scene.
         public struct SceneItem: Codable, Hashable {
+            public init(sourceName: String, sceneItemId: Int, inputKind: String? = nil, sourceType: OBSEnums.SourceType, sceneItemIndex: Int, isGroup: Bool? = nil) {
+                self.sourceName = sourceName
+                self.sceneItemId = sceneItemId
+                self.inputKind = inputKind
+                self.sourceType = sourceType
+                self.sceneItemIndex = sceneItemIndex
+                self.isGroup = isGroup
+            }
+            
             /// The name of the source/scene item.
             public var sourceName: String
             
