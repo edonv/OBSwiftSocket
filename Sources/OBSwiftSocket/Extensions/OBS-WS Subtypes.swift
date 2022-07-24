@@ -83,6 +83,15 @@ extension OBSRequests.GetSceneItemList.Response {
     }
 }
 
+extension OBSRequests.GetGroupSceneItemList.Response {
+    /// Maps the `sceneItems` property to the `OBSRequests.Subtypes.SceneItem` subtype.
+    /// - Throws: A `DecodingError` if decoding fails.
+    /// - Returns: Mapped typed `sceneItems`.
+    public func typedSceneItems() throws -> [OBSRequests.Subtypes.SceneItem] {
+        return try self.sceneItems.map { try $0.toCodable(OBSRequests.Subtypes.SceneItem.self) }
+    }
+}
+
 extension OBSEnums {
     /// Type of source/scene item.
     public enum SourceType: String, Codable {
