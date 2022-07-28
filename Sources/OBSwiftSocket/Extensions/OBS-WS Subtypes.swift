@@ -58,6 +58,11 @@ extension OBSRequests {
             /// The name of the scene.
             public var sceneName: String
             
+            public init(sceneIndex: Int, sceneName: String) {
+                self.sceneIndex = sceneIndex
+                self.sceneName = sceneName
+            }
+            
             public static func < (lhs: Scene, rhs: Scene) -> Bool {
                 return lhs.sceneIndex < rhs.sceneIndex
             }
