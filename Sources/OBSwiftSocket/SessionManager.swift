@@ -230,6 +230,7 @@ extension OBSSessionManager {
     /// Sends a `Request` message wrapped around the given `OBSRequest` body.
     /// - Parameter request: The `OBSRequest` that in a should be sent.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a response in the form of the associated `ResponseType`.
     public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
@@ -255,6 +256,7 @@ extension OBSSessionManager {
     ///   This can most easily be done by using the `OpDataTypes.RequestBatch.Request(id:request:)`
     ///   init for each one. This creates general, untyped `Request`s.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                  requests: [OpDataTypes.RequestBatch.Request]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
@@ -278,6 +280,7 @@ extension OBSSessionManager {
     ///   must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched
     ///   up with their responses in the returned `Dictionary`.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                                 requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
