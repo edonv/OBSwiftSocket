@@ -10,6 +10,19 @@ import Combine
 import JSONValue
 
 extension OBSSessionManager {
+    /// Creates a `Publisher` that returns the state of Studio Mode every time it changes.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing a `Bool` that re-publishes every time the state of Studio Mode changes.
+    public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
+        // Get initial value
+        return try sendRequest(OBSRequests.GetStudioModeEnabled())
+            .map(\.studioModeEnabled)
+            .merge(with: try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
+                    .map(\.studioModeEnabled))
+            .eraseToAnyPublisher()
+    }
+    
     /// A pair of a program and preview scene names. If `previewScene` is `nil`, OBS is in Studio Mode.
     public  typealias SceneNamePair = (programScene: String, previewScene: String?)
     
