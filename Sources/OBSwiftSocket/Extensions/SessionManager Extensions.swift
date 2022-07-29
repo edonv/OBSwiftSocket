@@ -11,7 +11,7 @@ import JSONValue
 
 extension OBSSessionManager {
     /// A pair of a program and preview scene names. If `previewScene` is `nil`, OBS is in Studio Mode.
-    typealias SceneNamePair = (programScene: String, previewScene: String?)
+    public  typealias SceneNamePair = (programScene: String, previewScene: String?)
     
     /// Creates a `Publisher` that returns `SceneNamePair`s every time the current program and preview
     /// scenes change.
@@ -19,7 +19,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
-    func activeScenePublisher() throws -> AnyPublisher<SceneNamePair, Error> {
+    public func activeScenePublisher() throws -> AnyPublisher<SceneNamePair, Error> {
         // Get initial program scene
         let programScene = try sendRequest(OBSRequests.GetCurrentProgramScene())
             .map(\.currentProgramSceneName)
@@ -55,7 +55,7 @@ extension OBSSessionManager {
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene list that re-publishes every time the list changes.
-    func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
+    public func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
         // Get initial value
         let getCurrentSceneList = try sendRequest(OBSRequests.GetSceneList())
         
@@ -85,7 +85,7 @@ extension OBSSessionManager {
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list changes.
-    func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
+    public func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         // Get initial value
         let getCurrentSceneItemList = try sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName))
         
@@ -117,7 +117,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
     /// active scene changes.
-    func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
+    public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         try activeScenePublisher()
             .map { $0.previewScene ?? $0.programScene }
             .tryFlatMap { try self.sceneItemListPublisher(for: $0) }
@@ -125,7 +125,7 @@ extension OBSSessionManager {
     }
     
     /// A tuple pairing a scene item's enabled and locked statuses.
-    typealias SceneItemStatePair = (isEnabled: Bool, isLocked: Bool)
+    public typealias SceneItemStatePair = (isEnabled: Bool, isLocked: Bool)
     
     /// Creates a `Publisher` that returns `SceneItemStatePair`s every time the provided scene item's
     /// state changes.
@@ -136,7 +136,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
     /// re-publishes every time its state changes.
-    func sceneItemStatePublisher(inScene sceneName: String, with sceneItemId: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
+    public func sceneItemStatePublisher(inScene sceneName: String, with sceneItemId: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
         // Get initial enabled value
         let enabledStatus = try sendRequest(OBSRequests.GetSceneItemEnabled(sceneName: sceneName, sceneItemId: sceneItemId))
             .map(\.sceneItemEnabled)
