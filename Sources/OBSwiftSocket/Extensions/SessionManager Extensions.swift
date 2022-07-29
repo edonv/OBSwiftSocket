@@ -123,4 +123,39 @@ extension OBSSessionManager {
             .tryFlatMap { try self.sceneItemListPublisher(for: $0) }
             .eraseToAnyPublisher()
     }
+    
+    /// A tuple pairing a scene item's enabled and locked statuses.
+    typealias SceneItemStatePair = (isEnabled: Bool, isLocked: Bool)
+    
+    /// Creates a `Publisher` that returns `SceneItemStatePair`s every time the provided scene item's
+    /// state changes.
+    /// - Parameters:
+    ///   - sceneName: Name of the scene that the scene item is in.
+    ///   - sceneItemId: Unique ID of the scene item.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
+    /// re-publishes every time its state changes.
+    func sceneItemStatePublisher(inScene sceneName: String, with sceneItemId: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
+        // Get initial enabled value
+        let enabledStatus = try sendRequest(OBSRequests.GetSceneItemEnabled(sceneName: sceneName, sceneItemId: sceneItemId))
+            .map(\.sceneItemEnabled)
+            // Merge in listener for value changes
+            .merge(with: try listenForEvent(OBSEvents.SceneItemEnableStateChanged.self, firstOnly: false)
+                    .filter { [sceneName] event in event.sceneName == sceneName }
+                    .map(\.sceneItemEnabled))
+
+        // Get initial locked value
+        let lockedStatus = try sendRequest(OBSRequests.GetSceneItemLocked(sceneName: sceneName, sceneItemId: sceneItemId))
+            .map(\.sceneItemLocked)
+            // Merge in listener for value changes
+            .merge(with: try listenForEvent(OBSEvents.SceneItemLockStateChanged.self, firstOnly: false)
+                    .filter { [sceneName] event in event.sceneName == sceneName }
+                    .map(\.sceneItemLocked))
+        
+        // Zip values together
+        return Publishers.Zip(enabledStatus, lockedStatus)
+            .map { ($0, $1) as SceneItemStatePair }
+            .eraseToAnyPublisher()
+    }
 }
