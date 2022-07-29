@@ -109,4 +109,18 @@ extension OBSSessionManager {
             .tryMap { try $0.typedSceneItems() }
             .eraseToAnyPublisher()
     }
+    
+    /// Creates a `Publisher` that returns the active scene's list of scene items, updating with any changes.
+    ///
+    /// If the active scene changes, the returned `Publisher` will re-publish with the newly-active scene's list.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
+    /// active scene changes.
+    func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
+        try activeScenePublisher()
+            .map { $0.previewScene ?? $0.programScene }
+            .tryFlatMap { try self.sceneItemListPublisher(for: $0) }
+            .eraseToAnyPublisher()
+    }
 }
