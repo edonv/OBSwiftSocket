@@ -79,4 +79,34 @@ extension OBSSessionManager {
             .tryMap { try $0.typedScenes() }
             .eraseToAnyPublisher()
     }
+    
+    /// Creates a `Publisher` that returns the provided scene's list of scene items, updating with any changes.
+    /// - Parameter sceneName: Name of the scene to get the scene list for.
+    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// Thrown by `checkForConnection()`.
+    /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list changes.
+    func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
+        // Get initial value
+        let getCurrentSceneItemList = try sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName))
+        
+        // Listen for updates to scene item list
+        let itemCreatedListener = try listenForEvent(OBSEvents.SceneItemCreated.self, firstOnly: false)
+            .map(\.sceneName)
+        let itemRemovedListener = try listenForEvent(OBSEvents.SceneItemRemoved.self, firstOnly: false)
+            .map(\.sceneName)
+        let listReindexedListener = try listenForEvent(OBSEvents.SceneItemListReindexed.self, firstOnly: false)
+            .map(\.sceneName)
+        
+        let eventListener = Publishers.Merge3(itemCreatedListener,
+                                              itemRemovedListener,
+                                              listReindexedListener)
+            // Make sure it was the requested scene that was updated
+            .filter { [sceneName] updatedScene in updatedScene == sceneName }
+            .ignoreOutput()
+            .tryFlatMap { _ in try self.sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName)) }
+        
+        return Publishers.Merge(getCurrentSceneItemList, eventListener)
+            .tryMap { try $0.typedSceneItems() }
+            .eraseToAnyPublisher()
+    }
 }
