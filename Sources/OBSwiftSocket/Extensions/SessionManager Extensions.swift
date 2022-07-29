@@ -120,7 +120,7 @@ extension OBSSessionManager {
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         try currentSceneNamePublisher()
             .map { $0.previewScene ?? $0.programScene }
-            .tryFlatMap { try self.sceneItemListPublisher(for: $0) }
+            .tryFlatMap { try self.sceneItemListPublisher(forScene: $0) }
             .eraseToAnyPublisher()
     }
     
