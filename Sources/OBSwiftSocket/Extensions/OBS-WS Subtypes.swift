@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - OBSRequests
+
 extension OBSRequests {
     /// Namespace for manually sussed-out subtypes of `Requests` and `RequestResponses`.
     public enum Subtypes {
