@@ -118,7 +118,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
     /// active scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
-        try activeScenePublisher()
+        try currentSceneNamePublisher()
             .map { $0.previewScene ?? $0.programScene }
             .tryFlatMap { try self.sceneItemListPublisher(for: $0) }
             .eraseToAnyPublisher()
