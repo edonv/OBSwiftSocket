@@ -121,7 +121,6 @@ extension OBSSessionManager {
                                               listReindexedListener)
             // Make sure it was the requested scene that was updated
             .filter { [sceneName] updatedScene in updatedScene == sceneName }
-            .ignoreOutput()
             .tryFlatMap { _ in try self.sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName)) }
         
         return Publishers.Merge(getCurrentSceneItemList, eventListener)
