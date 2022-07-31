@@ -10,14 +10,24 @@ import Combine
 import JSONValue
 
 extension OBSSessionManager {
+    public func getStudioModeStateOnce() throws -> AnyPublisher<Bool, Error> {
+        return try sendRequest(OBSRequests.GetStudioModeEnabled())
+            .map(\.studioModeEnabled)
+            // If error is thrown because studio mode is not active, replace that error with nil
+            .replaceError(with: false) { error -> Bool in
+                guard case Errors.requestResponseNotSuccess(let status) = error else { return false }
+                return status.code == .studioModeNotActive
+            }
+            .eraseToAnyPublisher()
+    }
+    
     /// Creates a `Publisher` that returns the state of Studio Mode every time it changes.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Bool` that re-publishes every time the state of Studio Mode changes.
     public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
         // Get initial value
-        return try sendRequest(OBSRequests.GetStudioModeEnabled())
-            .map(\.studioModeEnabled)
+        return try getStudioModeStateOnce()
             .merge(with: try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
                     .map(\.studioModeEnabled))
             .eraseToAnyPublisher()
