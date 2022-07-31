@@ -65,6 +65,12 @@ extension OBSSessionManager {
             .merge(with: try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self,
                                             firstOnly: false)
                     .map { $0.sceneName as String? })
+            .combineLatest(programScene,
+                           try studioModeStatePublisher()) { latestPreviewSceneName, latestProgramSceneName, studioModeEnabled -> String? in
+                return studioModeEnabled
+                    ? (latestPreviewSceneName ?? latestProgramSceneName)
+                    : nil
+            }
         
         // Combine values together
         return Publishers.CombineLatest(programScene, previewScene)
