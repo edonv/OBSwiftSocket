@@ -31,6 +31,7 @@ extension OBSSessionManager {
             // Merge with listener for future values
             .merge(with: try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
                     .map(\.studioModeEnabled))
+            .removeDuplicates()
             .eraseToAnyPublisher()
     }
     
