@@ -156,16 +156,29 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
     /// re-publishes every time its state changes.
     public func sceneItemStatePublisher(inScene sceneName: String, with sceneItemId: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
+        let enabledID = "\(sceneName).\(sceneItemID).enabled"
+        let lockedID = "\(sceneName).\(sceneItemID).locked"
+        let batch = try sendRequestBatch(requests: [
+            OBSRequests.GetSceneItemEnabled(sceneName: sceneName, sceneItemId: sceneItemID)
+                .toBatch(withID: enabledID),
+            OBSRequests.GetSceneItemLocked(sceneName: sceneName, sceneItemId: sceneItemID)
+                .toBatch(withID: lockedID)
+        ])
+        
         // Get initial enabled value
-        let enabledStatus = try sendRequest(OBSRequests.GetSceneItemEnabled(sceneName: sceneName, sceneItemId: sceneItemId))
+        let enabledStatus = batch
+            .compactMap(\.[enabledID])
+            .compactMap { $0 as? OBSRequests.GetSceneItemEnabled.Response }
             .map(\.sceneItemEnabled)
             // Merge in listener for value changes
             .merge(with: try listenForEvent(OBSEvents.SceneItemEnableStateChanged.self, firstOnly: false)
                     .filter { event in event.sceneName == sceneName }
                     .map(\.sceneItemEnabled))
-
+        
         // Get initial locked value
-        let lockedStatus = try sendRequest(OBSRequests.GetSceneItemLocked(sceneName: sceneName, sceneItemId: sceneItemId))
+        let lockedStatus = batch
+            .compactMap(\.[lockedID])
+            .compactMap { $0 as? OBSRequests.GetSceneItemLocked.Response }
             .map(\.sceneItemLocked)
             // Merge in listener for value changes
             .merge(with: try listenForEvent(OBSEvents.SceneItemLockStateChanged.self, firstOnly: false)
