@@ -39,3 +39,7 @@ Examples coming soon!
 ## License
 
 `OBSwiftSocket` is released under the MIT license. See [LICENSE](https://github.com/edonv/OBSwiftSocket/blob/main/LICENSE) for details.
+
+## To-Do's
+
+[ ] Make Batch Requests easier to work with.
