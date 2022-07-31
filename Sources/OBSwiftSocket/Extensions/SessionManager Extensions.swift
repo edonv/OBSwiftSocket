@@ -161,7 +161,7 @@ extension OBSSessionManager {
             .map(\.sceneItemEnabled)
             // Merge in listener for value changes
             .merge(with: try listenForEvent(OBSEvents.SceneItemEnableStateChanged.self, firstOnly: false)
-                    .filter { [sceneName] event in event.sceneName == sceneName }
+                    .filter { event in event.sceneName == sceneName }
                     .map(\.sceneItemEnabled))
 
         // Get initial locked value
@@ -169,7 +169,7 @@ extension OBSSessionManager {
             .map(\.sceneItemLocked)
             // Merge in listener for value changes
             .merge(with: try listenForEvent(OBSEvents.SceneItemLockStateChanged.self, firstOnly: false)
-                    .filter { [sceneName] event in event.sceneName == sceneName }
+                    .filter { event in event.sceneName == sceneName }
                     .map(\.sceneItemLocked))
         
         // Combine values together
