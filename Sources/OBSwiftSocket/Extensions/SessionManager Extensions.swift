@@ -82,17 +82,18 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that returns the current scene list data, updating with any changes.
+    /// Creates a `Publisher` that returns the current scene list, updating with any changes.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing the scene list response that re-publishes every time the list changes.
-    public func sceneListPublisher() throws -> AnyPublisher<OBSRequests.GetSceneList.Response, Error> {
+    /// - Returns: A `Publisher` containing the scene list that re-publishes every time the list changes.
+    public func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
         // Get initial value
         let getCurrentSceneList = try sendRequest(OBSRequests.GetSceneList())
+            .tryMap { try $0.typedScenes() }
         
         // Listen for updates
         let eventListener = try listenForEvent(OBSEvents.SceneListChanged.self, firstOnly: false)
-            .tryFlatMap { _ in try self.sendRequest(OBSRequests.GetSceneList()) }
+            .tryMap { try $0.typedScenes() }
         
         return Publishers.Merge(getCurrentSceneList, eventListener)
             .eraseToAnyPublisher()
