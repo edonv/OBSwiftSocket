@@ -110,7 +110,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` that completed upon connecting successfully. If connection process fails,
     /// it completes with an `Error`.
     public func connect(persistConnectionData: Bool = true,
-                        events: OBSEnums.EventSubscription? = nil) throws -> AnyPublisher<Never, Error> {
+                        events: OBSEnums.EventSubscription? = nil) throws -> AnyPublisher<Void, Error> {
         guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
         
         // This just checks to see if the WSPublisher has already started its connection process.
@@ -136,7 +136,7 @@ extension OBSSessionManager {
             //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
                                          self.publisher(forFirstMessageOfType: OpDataTypes.Identified.self)) }
             .timeout(.seconds(10), scheduler: DispatchQueue.main, customError: { Errors.timedOutWaitingToConnect })
-            .ignoreOutput()
+            .asVoid()
             
             .handleEvents(receiveCompletion: { [weak self] result in
                 switch result {
