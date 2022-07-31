@@ -28,6 +28,7 @@ extension OBSSessionManager {
     public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
         // Get initial value
         return try getStudioModeStateOnce()
+            // Merge with listener for future values
             .merge(with: try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
                     .map(\.studioModeEnabled))
             .eraseToAnyPublisher()
