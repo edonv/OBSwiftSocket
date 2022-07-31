@@ -139,6 +139,7 @@ extension OBSSessionManager {
         try currentSceneNamePairPublisher()
             .map { $0.previewScene ?? $0.programScene }
             .tryFlatMap { try self.sceneItemListPublisher(forScene: $0) }
+            .removeDuplicates()
             .eraseToAnyPublisher()
     }
     
