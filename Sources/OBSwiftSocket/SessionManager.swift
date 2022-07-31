@@ -38,6 +38,9 @@ public final class OBSSessionManager: ObservableObject {
         wsPublisher.isConnected
     }
     
+    /// Describes the current connection state of the session.
+    @Published public var connectionState: ConnectionState = .disconnected
+    
     /// Returns the `password` from `connectionData` if one is set.
     public var password: String? {
         connectionData?.password
@@ -54,27 +57,6 @@ public final class OBSSessionManager: ObservableObject {
     
     var currentSceneName: String! {
         currentPreviewSceneName ?? currentProgramSceneName
-    }
-    
-    /// Creates a `Publisher` that returns changes to the connection status.
-    public var connectionStatus: AnyPublisher<Bool, Error> {
-        return wsPublisher.publisher
-            .map { event -> Bool? in
-                switch event {
-                case .connected:
-                    return true
-                case .disconnected:
-                    return false
-                default:
-                    return nil
-                }
-            }
-            // On fresh subscription, it'll push latest value.
-            // If it's not .connected/.disconnected, replace with if it's connected
-            .replaceNil(with: isWebSocketConnected)
-            // Don't push through duplicate values
-            .removeDuplicates()
-            .eraseToAnyPublisher()
     }
 }
 
@@ -117,6 +99,8 @@ extension OBSSessionManager {
         // It also might already be connected.
         guard !isWebSocketConnected else { throw Errors.alreadyConnected }
         
+        self.connectionState = .connecting
+        
         // Set up listeners/publishers before starting connection.
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
         let connectionChain = publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
@@ -146,6 +130,7 @@ extension OBSSessionManager {
                         self?.persistConnectionData(data)
                     }
                     try? self?.addObservers()
+                    self?.connectionState = .active
                     
                 case .failure(let err):
                     var reason: String? = nil
@@ -156,6 +141,7 @@ extension OBSSessionManager {
                     }
                     
                     self?.wsPublisher.disconnect(reason: reason)
+                    self?.connectionState = .disconnected
                 }
             })
             .eraseToAnyPublisher()
@@ -310,6 +296,7 @@ extension OBSSessionManager {
                 switch event {
                 case .disconnected(let wsCloseCode, let reason):
                     let obsCloseCode = OBSEnums.CloseCode(rawValue: wsCloseCode.rawValue)
+                    self.connectionState = .disconnected
                     throw Errors.disconnected(obsCloseCode, reason)
                     
                 default:
@@ -462,6 +449,14 @@ extension OBSSessionManager {
                 .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
         })
         .eraseToAnyPublisher()
+    }
+}
+
+extension OBSSessionManager {
+    public enum ConnectionState {
+        case disconnected
+        case connecting
+        case active
     }
 }
 
