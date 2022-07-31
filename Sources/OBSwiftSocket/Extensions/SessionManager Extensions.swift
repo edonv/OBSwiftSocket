@@ -78,6 +78,7 @@ extension OBSSessionManager {
         // Combine values together
         return Publishers.CombineLatest(programScene, previewScene)
             .map { $0 as SceneNamePair }
+            .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
     
