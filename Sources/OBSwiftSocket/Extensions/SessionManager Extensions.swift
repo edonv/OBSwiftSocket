@@ -13,7 +13,7 @@ extension OBSSessionManager {
     public func getStudioModeStateOnce() throws -> AnyPublisher<Bool, Error> {
         return try sendRequest(OBSRequests.GetStudioModeEnabled())
             .map(\.studioModeEnabled)
-            // If error is thrown because studio mode is not active, replace that error with nil
+            // If error is thrown because studio mode is not active, replace that error with false
             .replaceError(with: false) { error -> Bool in
                 guard case Errors.requestResponseNotSuccess(let status) = error else { return false }
                 return status.code == .studioModeNotActive
