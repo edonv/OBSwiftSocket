@@ -426,7 +426,8 @@ public enum OpDataTypes {
         func mapResults() throws -> [String: OBSRequestResponse] {
             return try results.reduce(into: [:]) { (dict, resp) in
                 guard resp.status.code == .success else {
-                    // as OBSWS.Requests.FailedBatchReqResponse
+                    // It's added in the form of the full Response message, instead of just the body as below.
+                    // In this case, the body is nil.
                     dict[resp.id ?? resp.type.rawValue] = resp
                     print(resp)
                     return
