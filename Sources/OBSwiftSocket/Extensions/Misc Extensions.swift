@@ -128,7 +128,7 @@ extension Publisher {
 }
 
 extension Publisher where Failure: Error {
-    public func replaceError(with output: Output, where predicate: @escaping (Self.Failure) -> Bool) -> AnyPublisher<Output, Failure> {
+    public func replaceError(with output: Output, where predicate: @escaping (Self.Failure) -> Bool) -> Publishers.Catch<Self, AnyPublisher<Output, Failure>> {
         self
             .catch { error -> AnyPublisher<Output, Failure> in
                 if predicate(error) {
@@ -140,7 +140,6 @@ extension Publisher where Failure: Error {
                         .eraseToAnyPublisher()
                 }
             }
-            .eraseToAnyPublisher()
     }
 }
 
