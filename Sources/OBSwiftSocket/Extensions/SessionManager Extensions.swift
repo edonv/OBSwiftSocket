@@ -44,7 +44,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
-    public func currentSceneNamePublisher() throws -> AnyPublisher<SceneNamePair, Error> {
+    public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
         // Get initial program scene
         let programScene = try sendRequest(OBSRequests.GetCurrentProgramScene())
             .map(\.currentProgramSceneName)
@@ -142,7 +142,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
     /// active scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
-        try currentSceneNamePublisher()
+        try currentSceneNamePairPublisher()
             .map { $0.previewScene ?? $0.programScene }
             .tryFlatMap { try self.sceneItemListPublisher(forScene: $0) }
             .eraseToAnyPublisher()
