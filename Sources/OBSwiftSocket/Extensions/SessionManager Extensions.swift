@@ -56,15 +56,10 @@ extension OBSSessionManager {
         // Get initial preview scene
         let previewScene = try sendRequest(OBSRequests.GetCurrentPreviewScene())
             .map { $0.currentPreviewSceneName as String? }
-            // Catch errors
-            // If the error is specifically Errors.requestResponseNotSuccess(.studioModeNotActive), replace with nil
-            // Otherwise, pass the error along.
-            .catch { error -> AnyPublisher<String?, Error> in
-                guard case Errors.requestResponseNotSuccess(let status) = error,
-                      status.code == .studioModeNotActive else { return Fail(error: error).eraseToAnyPublisher() }
-                return Just(nil)
-                    .setFailureType(to: Error.self)
-                    .eraseToAnyPublisher()
+            // If error is thrown because studio mode is not active, replace that error with nil
+            .replaceError(with: nil) { error -> Bool in
+                guard case Errors.requestResponseNotSuccess(let status) = error else { return false }
+                return status.code == .studioModeNotActive
             }
             // Merge in listener for value changes
             .merge(with: try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self,
