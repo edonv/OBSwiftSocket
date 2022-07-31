@@ -127,6 +127,22 @@ extension Publisher {
     }
 }
 
+extension Publisher where Failure: Error {
+    public func replaceError(with output: Output, where predicate: @escaping (Self.Failure) -> Bool) -> AnyPublisher<Output, Failure> {
+        self
+            .catch { error -> AnyPublisher<Output, Failure> in
+                if predicate(error) {
+                    return Just(output)
+                        .setFailureType(to: Failure.self)
+                        .eraseToAnyPublisher()
+                } else {
+                    return Fail(error: error)
+                        .eraseToAnyPublisher()
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+}
 
 // MARK: - UserDefaults
 
