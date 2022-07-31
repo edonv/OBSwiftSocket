@@ -134,7 +134,7 @@ extension OBSSessionManager {
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
-    /// active scene changes.
+    /// active scene changes. This includes if Studio Mode is enabled and the preview scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         try currentSceneNamePairPublisher()
             .map { $0.previewScene ?? $0.programScene }
