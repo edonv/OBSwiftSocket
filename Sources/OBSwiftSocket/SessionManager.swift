@@ -34,7 +34,7 @@ public final class OBSSessionManager: ObservableObject {
     private var observers = Set<AnyCancellable>()
     
     /// Returns whether `wsPublisher` is connected to a WebSocket (OBS) server.
-    public var isConnected: Bool {
+    public var isWebSocketConnected: Bool {
         wsPublisher.isConnected
     }
     
@@ -71,7 +71,7 @@ public final class OBSSessionManager: ObservableObject {
             }
             // On fresh subscription, it'll push latest value.
             // If it's not .connected/.disconnected, replace with if it's connected
-            .replaceNil(with: isConnected)
+            .replaceNil(with: isWebSocketConnected)
             // Don't push through duplicate values
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -84,7 +84,7 @@ extension OBSSessionManager {
     /// Checks for an active WebSocket connection.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     public func checkForConnection() throws {
-        if !isConnected {
+        if !isWebSocketConnected {
             throw WebSocketPublisher.WSErrors.noActiveConnection
         }
     }
@@ -115,7 +115,7 @@ extension OBSSessionManager {
         
         // This just checks to see if the WSPublisher has already started its connection process.
         // It also might already be connected.
-        guard !isConnected else { throw Errors.alreadyConnected }
+        guard !isWebSocketConnected else { throw Errors.alreadyConnected }
         
         // Set up listeners/publishers before starting connection.
         // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
