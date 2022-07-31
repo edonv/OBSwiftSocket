@@ -52,6 +52,7 @@ extension OBSSessionManager {
             .merge(with: try listenForEvent(OBSEvents.CurrentProgramSceneChanged.self,
                                             firstOnly: false)
                     .map(\.sceneName))
+            .removeDuplicates()
         
         // Get initial preview scene
         let previewScene = try sendRequest(OBSRequests.GetCurrentPreviewScene())
@@ -65,12 +66,14 @@ extension OBSSessionManager {
             .merge(with: try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self,
                                             firstOnly: false)
                     .map { $0.sceneName as String? })
+            .removeDuplicates()
             .combineLatest(programScene,
                            try studioModeStatePublisher()) { latestPreviewSceneName, latestProgramSceneName, studioModeEnabled -> String? in
                 return studioModeEnabled
                     ? (latestPreviewSceneName ?? latestProgramSceneName)
                     : nil
             }
+            .removeDuplicates()
         
         // Combine values together
         return Publishers.CombineLatest(programScene, previewScene)
