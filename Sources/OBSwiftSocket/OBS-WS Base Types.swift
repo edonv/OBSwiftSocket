@@ -122,6 +122,10 @@ extension OBSRequest {
     var responseType: ResponseType.Type {
         Self.ResponseType.self
     }
+    
+    func toBatch(withID id: String?) -> OpDataTypes.RequestBatch.Request? {
+        OpDataTypes.RequestBatch.Request(id: id, request: self)
+    }
 }
 
 /// All types of Events conform to this.
