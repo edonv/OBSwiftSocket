@@ -259,7 +259,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
     public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
-                                 requests: [OpDataTypes.RequestBatch.Request]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
+                                 requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
         
         let msgBodyToSend = OpDataTypes.RequestBatch(id: UUID().uuidString, executionType: executionType, requests: requests.compactMap { $0 })
