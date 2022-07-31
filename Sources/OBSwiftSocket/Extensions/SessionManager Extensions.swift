@@ -66,7 +66,8 @@ extension OBSSessionManager {
                                             firstOnly: false)
                     .map { $0.sceneName as String? })
         
-        return Publishers.Zip(programScene, previewScene)
+        // Combine values together
+        return Publishers.CombineLatest(programScene, previewScene)
             .map { $0 as SceneNamePair }
             .eraseToAnyPublisher()
     }
@@ -172,8 +173,8 @@ extension OBSSessionManager {
                     .filter { [sceneName] event in event.sceneName == sceneName }
                     .map(\.sceneItemLocked))
         
-        // Zip values together
-        return Publishers.Zip(enabledStatus, lockedStatus)
+        // Combine values together
+        return Publishers.CombineLatest(enabledStatus, lockedStatus)
             .map { ($0, $1) as SceneItemStatePair }
             .eraseToAnyPublisher()
     }
