@@ -90,20 +90,8 @@ extension OBSSessionManager {
         // Get initial value
         let getCurrentSceneList = try sendRequest(OBSRequests.GetSceneList())
         
-        // Listen for updates to scene list
-        let sceneCreatedListener = try listenForEvent(OBSEvents.SceneCreated.self, firstOnly: false)
-            .ignoreOutput()
-        let sceneRemovedListener = try listenForEvent(OBSEvents.SceneRemoved.self, firstOnly: false)
-            .ignoreOutput()
-        let sceneNameChangedListener = try listenForEvent(OBSEvents.SceneNameChanged.self, firstOnly: false)
-            .ignoreOutput()
-        let sceneListChanedListener = try listenForEvent(OBSEvents.SceneListChanged.self, firstOnly: false)
-            .ignoreOutput()
-        
-        let eventListener = Publishers.Merge4(sceneCreatedListener,
-                                              sceneRemovedListener,
-                                              sceneNameChangedListener,
-                                              sceneListChanedListener)
+        // Listen for updates
+        let eventListener = try listenForEvent(OBSEvents.SceneListChanged.self, firstOnly: false)
             .tryFlatMap { _ in try self.sendRequest(OBSRequests.GetSceneList()) }
         
         return Publishers.Merge(getCurrentSceneList, eventListener)
