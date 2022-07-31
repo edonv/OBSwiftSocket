@@ -155,7 +155,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
     /// re-publishes every time its state changes.
-    public func sceneItemStatePublisher(inScene sceneName: String, with sceneItemId: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
+    public func sceneItemStatePublisher(inScene sceneName: String, withID sceneItemID: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
         let enabledID = "\(sceneName).\(sceneItemID).enabled"
         let lockedID = "\(sceneName).\(sceneItemID).locked"
         let batch = try sendRequestBatch(requests: [
