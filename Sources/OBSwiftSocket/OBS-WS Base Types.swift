@@ -331,12 +331,12 @@ public enum OpDataTypes {
         public struct Status: Codable {
             /// `result` is `true` if the request resulted in `OBSEnums.RequestStatus.success` (100).
             /// `false` if otherwise.
-            var result: Bool
+            public var result: Bool
             
-            var code: OBSEnums.RequestStatus
+            public var code: OBSEnums.RequestStatus
             
             /// May be provided by the server on errors to offer further details on why a request failed.
-            var comment: String?
+            public var comment: String?
         }
         
         enum CodingKeys: String, CodingKey {
