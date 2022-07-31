@@ -107,3 +107,20 @@ extension OBSEnums {
     }
 }
 
+// MARK: - OBSEvents
+
+extension OBSEvents {
+    public enum Subtypes {
+        public typealias Scene = OBSRequests.Subtypes.Scene
+    }
+}
+
+extension OBSEvents.SceneListChanged {
+    /// Maps the `scenes` property to the `OBSRequests.Subtypes.Scene` subtype.
+    /// - Throws: A `DecodingError` if decoding fails.
+    /// - Returns: Mapped typed `scenes`.
+    public func typedScenes() throws -> [OBSEvents.Subtypes.Scene] {
+        return try self.scenes.map { try $0.toCodable(OBSRequests.Subtypes.Scene.self) }
+    }
+}
+
