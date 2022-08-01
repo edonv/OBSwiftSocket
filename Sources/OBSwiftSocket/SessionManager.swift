@@ -51,13 +51,6 @@ public final class OBSSessionManager: ObservableObject {
         connectionData?.encodingProtocol ?? .json
     }
     
-    @Published var isStudioModeEnabled: Bool = false
-    @Published var currentProgramSceneName: String! = nil
-    @Published var currentPreviewSceneName: String? = nil
-    
-    var currentSceneName: String! {
-        currentPreviewSceneName ?? currentProgramSceneName
-    }
 }
 
 // MARK: - Connections
@@ -129,7 +122,7 @@ extension OBSSessionManager {
                        let data = self?.connectionData {
                         self?.persistConnectionData(data)
                     }
-                    try? self?.addObservers()
+                    
                     self?.connectionState = .active
                     
                 case .failure(let err):
@@ -148,56 +141,6 @@ extension OBSSessionManager {
         
         wsPublisher.connect(with: connectionData.urlRequest!)
         return connectionChain
-    }
-    
-    // TODO: Keep or toss this?
-    private func getInitialData() throws -> AnyPublisher<Void, Error> {
-        // Uses direct calls to `wsPub.sendRequest` because local one would be waiting until connected
-        let studioModeReq = try sendRequest(OBSRequests.GetStudioModeEnabled())
-            .map(\.studioModeEnabled)
-            .handleEvents(receiveOutput: { [weak self] isStudioModeEnabled in
-                self?.isStudioModeEnabled = isStudioModeEnabled
-            })
-            .tryFlatMap { isStudioModeEnabled -> AnyPublisher<Void, Error> in
-                guard isStudioModeEnabled else { return Future(withValue: ()).eraseToAnyPublisher() }
-                
-                return try self.sendRequest(OBSRequests.GetCurrentPreviewScene())
-                    .map(\.currentPreviewSceneName)
-                    .handleEvents(receiveOutput: { [weak self] currentPreviewScene in
-                        self?.currentPreviewSceneName = currentPreviewScene
-                    }).asVoid()
-            }.asVoid()
-        
-        let currentProgramReq = try self.sendRequest(OBSRequests.GetCurrentProgramScene())
-            .map(\.currentProgramSceneName)
-            .handleEvents(receiveOutput: { [weak self] currentProgramScene in
-                self?.currentProgramSceneName = currentProgramScene
-            }).asVoid()
-        
-        return Publishers.Zip(studioModeReq, currentProgramReq)
-            .asVoid()
-    }
-    
-    private func addObservers() throws {
-        try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
-            .map(\.studioModeEnabled)
-            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] isStudioModeEnabled in
-                self?.currentPreviewSceneName = isStudioModeEnabled ? self?.currentProgramSceneName : nil
-                self?.isStudioModeEnabled = isStudioModeEnabled
-            })
-            .store(in: &observers)
-        
-        try listenForEvent(OBSEvents.CurrentProgramSceneChanged.self, firstOnly: false)
-            .map(\.sceneName)
-            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newProgramSceneName in
-                self?.currentProgramSceneName = newProgramSceneName
-            }).store(in: &observers)
-        
-        try listenForEvent(OBSEvents.CurrentPreviewSceneChanged.self, firstOnly: false)
-            .map(\.sceneName)
-            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] newPreviewSceneName in
-                self?.currentPreviewSceneName = newPreviewSceneName
-            }).store(in: &observers)
     }
 }
 
