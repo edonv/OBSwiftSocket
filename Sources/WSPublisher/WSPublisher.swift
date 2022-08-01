@@ -89,17 +89,10 @@ public class WebSocketPublisher: NSObject {
     /// - Parameter message: The `URLSessionWebSocketTask.Message` to send.
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
-    private func send(_ message: URLSessionWebSocketTask.Message, deferred: Bool) throws -> AnyPublisher<Void, Error> {
+    private func send(_ message: URLSessionWebSocketTask.Message) throws -> AnyPublisher<Void, Error> {
         let task = try confirmConnection()
         
-        let sendMessage: AnyPublisher<Void, Error>
-        if deferred {
-            sendMessage = task.send(message).eraseToAnyPublisher()
-        } else {
-            sendMessage = task.sendDeferred(message).eraseToAnyPublisher()
-        }
-        
-        return Publishers.Delay(upstream: sendMessage,
+        return Publishers.Delay(upstream: task.send(message),
                                 interval: .seconds(1),
                                 tolerance: .seconds(0.5),
                                 scheduler: DispatchQueue.main)
@@ -110,16 +103,16 @@ public class WebSocketPublisher: NSObject {
     /// - Parameter message: The `String` message to send.
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
-    public func send(_ message: String, deferred: Bool) throws -> AnyPublisher<Void, Error> {
-        return try send(.string(message), deferred: deferred)
+    public func send(_ message: String) throws -> AnyPublisher<Void, Error> {
+        return try send(.string(message))
     }
     
     /// Sends a `Data` message to the connected WebSocket server/host.
     /// - Parameter message: The `Data` message to send.
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
-    public func send(_ message: Data, deferred: Bool) throws -> AnyPublisher<Void, Error> {
-        return try send(.data(message), deferred: deferred)
+    public func send(_ message: Data) throws -> AnyPublisher<Void, Error> {
+        return try send(.data(message))
     }
     
     /// Sends a ping to the connected WebSocket server/host.
@@ -227,20 +220,6 @@ extension URLSessionWebSocketTask {
                     promise(.failure(err))
                 } else {
                     promise(.success(()))
-                }
-            }
-        }
-    }
-    
-    public func sendDeferred(_ message: Message) -> Deferred<Future<Void, Error>> {
-        return Deferred {
-            return Future { promise in
-                self.send(message) { error in
-                    if let err = error {
-                        promise(.failure(err))
-                    } else {
-                        promise(.success(()))
-                    }
                 }
             }
         }
