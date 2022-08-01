@@ -14,7 +14,10 @@ import MessagePacker
 
 extension WebSocketPublisher {
     /// Sends an `Encodable` message to the connected WebSocket server/host.
-    /// - Parameter message: The `Encodable` message to send.
+    /// - Parameters:
+    ///   - message: The `Encodable` message to send.
+    ///   - encodingMode: The `OBSSessionManager.ConnectionData.MessageEncoding` to be used
+    ///   for sending `Encodable` messages over WebSocket.
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     func send<T: Encodable>(_ message: T,
