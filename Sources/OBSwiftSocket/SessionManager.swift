@@ -208,9 +208,9 @@ extension OBSSessionManager {
     /// - Parameter body: The data that should be wrapped in a `Message<Body>` and sent.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling that the message has been sent.
-    public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
+    public func sendMessage<Body: OBSOpData>(_ body: Body, deferred: Bool = false) throws -> AnyPublisher<Void, Error> {
         let msg = Message<Body>(data: body)
-        return try self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
+        return try self.wsPublisher.send(msg, deferred: deferred, encodingMode: self.encodingProtocol)
     }
     
     /// Sends a `Request` message wrapped around the given `OBSRequest` body.
