@@ -377,9 +377,9 @@ extension OBSSessionManager {
     
     /// Creates a `Publisher` that publishes all received `OBSEvent`s of the provided types.
     ///
-    /// Doesn't complete on its own. It continues listening for any instances of the provided
-    /// `OBSEvent` types until the subscriber is closed off.
-    /// - Parameter eventTypes: Types of `OBSEvent`s to listen for. (i.e. `OBSEvents.InputCreated.self`)
+    /// Doesn't complete on its own. It continues listening for any instances of the provided `OBSEvent` types
+    ///  until the subscriber is closed off.
+    /// - Parameter eventTypes: Types of `OBSEvents.AllTypes` enums to listen for. (i.e. `OBSEvents.AllTypes.InputCreated`).
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided types.
@@ -394,6 +394,8 @@ extension OBSSessionManager {
         .eraseToAnyPublisher()
     }
 }
+
+// MARK: - Connection Types
 
 extension OBSSessionManager {
     public enum ConnectionState {
