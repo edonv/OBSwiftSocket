@@ -85,7 +85,7 @@ public class WebSocketPublisher: NSObject {
     /// Private encapsulation for sending a `URLSessionWebSocketTask.Message` to the connected
     /// WebSocket server/host.
     ///
-    /// The returned `Publisher` fails if
+    /// The returned `Publisher` fails if there is no active connection.
     /// - Parameter message: The `URLSessionWebSocketTask.Message` to send.
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
