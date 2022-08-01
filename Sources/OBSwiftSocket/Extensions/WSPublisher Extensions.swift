@@ -18,6 +18,7 @@ extension WebSocketPublisher {
     /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
     /// - Returns: A `Publisher` without any value, signalling the message has been sent.
     func send<T: Encodable>(_ message: T,
+                            deferred: Bool,
                             encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) throws -> AnyPublisher<Void, Error> {
         switch encodingMode {
         case .json:
@@ -25,14 +26,14 @@ extension WebSocketPublisher {
                 return Fail(error: CodingErrors.failedToEncodeObject(.json))
                     .eraseToAnyPublisher()
             }
-            return try send(json)
+            return try send(json, deferred: deferred)
         
         case .msgPack:
             guard let msgData = try? MessagePackEncoder().encode(message) else {
                 return Fail(error: CodingErrors.failedToEncodeObject(.msgPack))
                     .eraseToAnyPublisher()
             }
-            return try send(msgData)
+            return try send(msgData, deferred: deferred)
         }
     }
 }
