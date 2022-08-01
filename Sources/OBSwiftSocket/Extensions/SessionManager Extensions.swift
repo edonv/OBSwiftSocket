@@ -36,7 +36,7 @@ extension OBSSessionManager {
     }
     
     /// A pair of a program and preview scene names. If `previewScene` is `nil`, OBS is in Studio Mode.
-    public  typealias SceneNamePair = (programScene: String, previewScene: String?)
+    public typealias SceneNamePair = (programScene: String, previewScene: String?)
     
     /// Creates a `Publisher` that returns `SceneNamePair`s every time the current program and preview
     /// scenes change.
