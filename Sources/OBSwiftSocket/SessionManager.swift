@@ -12,6 +12,19 @@ import MessagePacker
 
 /// Manages connection sessions with OBS.
 public final class OBSSessionManager: ObservableObject {
+    // MARK: - Private Properties
+    
+    /// Contains any active `Combine` `Cancellable`s.
+    private var observers = Set<AnyCancellable>()
+    
+    /// Publisher that maintains connections with WebSocket server and publishes events.
+    public var wsPublisher: WebSocketPublisher
+    
+    /// Data for creating connection to OBS-WS.
+    public var connectionData: ConnectionData?
+    
+    // MARK: - Initializers
+    
     /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
     public init() {
         self.wsPublisher = WebSocketPublisher()
@@ -24,22 +37,12 @@ public final class OBSSessionManager: ObservableObject {
         self.connectionData = connectionData
     }
     
-    /// Publisher that maintains connections with WebSocket server and publishes events.
-    public var wsPublisher: WebSocketPublisher
-    
-    /// Data for creating connection to OBS-WS.
-    public var connectionData: ConnectionData?
-    
-    /// Contains any active `Combine` `Cancellable`s.
-    private var observers = Set<AnyCancellable>()
+    // MARK: - Public Computed Properties
     
     /// Returns whether `wsPublisher` is connected to a WebSocket (OBS) server.
     public var isWebSocketConnected: Bool {
         wsPublisher.isConnected
     }
-    
-    /// Describes the current connection state of the session.
-    @Published public var connectionState: ConnectionState = .disconnected
     
     /// Returns the `password` from `connectionData` if one is set.
     public var password: String? {
@@ -51,6 +54,10 @@ public final class OBSSessionManager: ObservableObject {
         connectionData?.encodingProtocol ?? .json
     }
     
+    // MARK: - Public @Publisher Properties
+    
+    /// Describes the current connection state of the session.
+    @Published public var connectionState: ConnectionState = .disconnected
 }
 
 // MARK: - Connections
