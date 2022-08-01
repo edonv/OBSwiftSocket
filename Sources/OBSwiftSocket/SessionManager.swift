@@ -294,7 +294,7 @@ extension OBSSessionManager {
     }
     
     /// Creates a `Publisher` that publishes the data of the first `OBSRequestResponse` message received
-    /// from the server that matches the provided `OBSRequest` type and message ID (if provided).
+    /// from the server that matches the provided `OBSRequest` and message ID (if provided).
     /// - Parameters:
     ///   - request: `OBSRequest` object for which the published `OBSRequestResponse` should be
     ///   associated with.
