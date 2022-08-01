@@ -14,6 +14,9 @@ import MessagePacker
 public final class OBSSessionManager: ObservableObject {
     // MARK: - Private Properties
     
+    /// The queue/scheduler to use for internal processes.
+    private let sessionQueue = DispatchQueue(label: "OBSSessionManager")
+    
     /// Contains any active `Combine` `Cancellable`s.
     private var observers = Set<AnyCancellable>()
     
