@@ -226,7 +226,7 @@ extension OBSSessionManager {
                 .eraseToAnyPublisher()
         }
         
-        return Publishers.Zip(try sendMessage(body),
+        return Publishers.Zip(try sendMessage(body, deferred: true),
                               publisher(forResponseTo: request, withID: body.id))
             .map(\.1)
             .eraseToAnyPublisher()
