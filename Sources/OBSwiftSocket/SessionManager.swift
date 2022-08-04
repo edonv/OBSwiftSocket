@@ -12,20 +12,6 @@ import MessagePacker
 
 /// Manages connection sessions with OBS.
 public final class OBSSessionManager: ObservableObject {
-    // MARK: - Private Properties
-    
-    /// The queue/scheduler to use for internal processes.
-    private let sessionQueue = DispatchQueue(label: "OBSSessionManager")
-    
-    /// Contains any active `Combine` `Cancellable`s.
-    private var observers = Set<AnyCancellable>()
-    
-    /// Publisher that maintains connections with WebSocket server and publishes events.
-    public var wsPublisher: WebSocketPublisher
-    
-    /// Data for creating connection to OBS-WS.
-    public var connectionData: ConnectionData?
-    
     // MARK: - Initializers
     
     /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
@@ -39,6 +25,22 @@ public final class OBSSessionManager: ObservableObject {
         self.init()
         self.connectionData = connectionData
     }
+    
+    // MARK: - Private Properties
+    
+    internal var publishers: PublisherStore
+    
+    /// The queue/scheduler to use for internal processes.
+    private let publisherDataQueue = DispatchQueue(label: "OBSSessionManager")
+    
+    /// Contains any active `Combine` `Cancellable`s.
+    private var observers = Set<AnyCancellable>()
+    
+    /// Publisher that maintains connections with WebSocket server and publishes events.
+    public var wsPublisher: WebSocketPublisher
+    
+    /// Data for creating connection to OBS-WS.
+    public var connectionData: ConnectionData?
     
     // MARK: - Public Computed Properties
     
