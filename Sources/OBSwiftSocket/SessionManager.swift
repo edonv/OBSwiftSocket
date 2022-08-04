@@ -17,6 +17,7 @@ public final class OBSSessionManager: ObservableObject {
     /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
     public init() {
         self.wsPublisher = WebSocketPublisher()
+        self.publishers = PublisherStore()
     }
     
     /// Initializes an `OBSSessionManager` with `ConnectionData`.
