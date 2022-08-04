@@ -22,17 +22,34 @@ extension OBSSessionManager {
     }
     
     /// Creates a `Publisher` that returns the state of Studio Mode every time it changes.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Bool` that re-publishes every time the state of Studio Mode changes.
     public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
+        if let pub = publishers.studioModeState {
+            return pub
+        }
+        
         // Get initial value
-        return try getStudioModeStateOnce()
+        let pub = try getStudioModeStateOnce()
             // Merge with listener for future values
             .merge(with: try listenForEvent(OBSEvents.StudioModeStateChanged.self, firstOnly: false)
                     .map(\.studioModeEnabled))
             .removeDuplicates()
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                print("Main thread inside on complete?:", Thread.isMainThread)
+                self?.publishers.studioModeState = nil
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.studioModeState = pub
+        return pub
     }
     
     /// A pair of a program and preview scene names. If `previewScene` is `nil`, OBS is in Studio Mode.
@@ -40,11 +57,19 @@ extension OBSSessionManager {
     
     /// Creates a `Publisher` that returns `SceneNamePair`s every time the current program and preview
     /// scenes change.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
     public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
+        if let pub = publishers.currentSceneNamePair {
+            return pub
+        }
+        
         // Get initial program scene
         let programScene = try sendRequest(OBSRequests.GetCurrentProgramScene())
             .map(\.currentProgramSceneName)
@@ -76,17 +101,33 @@ extension OBSSessionManager {
             .removeDuplicates()
         
         // Combine values together
-        return Publishers.CombineLatest(programScene, previewScene)
+        let pub = Publishers.CombineLatest(programScene, previewScene)
             .map { $0 as SceneNamePair }
             .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.currentSceneNamePair = nil
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.currentSceneNamePair = pub
+        return pub
     }
     
     /// Creates a `Publisher` that returns the current scene list, updating with any changes.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene list that re-publishes every time the list changes.
     public func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
+        if let pub = publishers.sceneList {
+            return pub
+        }
+        
         // Get initial value
         let getCurrentSceneList = try sendRequest(OBSRequests.GetSceneList())
             .tryMap { try $0.typedScenes() }
@@ -95,16 +136,32 @@ extension OBSSessionManager {
         let eventListener = try listenForEvent(OBSEvents.SceneListChanged.self, firstOnly: false)
             .tryMap { try $0.typedScenes() }
         
-        return Publishers.Merge(getCurrentSceneList, eventListener)
+        let pub = Publishers.Merge(getCurrentSceneList, eventListener)
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.sceneList = nil
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.sceneList = pub
+        return pub
     }
     
     /// Creates a `Publisher` that returns the provided scene's list of scene items, updating with any changes.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameter sceneName: Name of the scene to get the scene list for.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list changes.
     public func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
+        if let pub = publishers.sceneItemList[sceneName] {
+            return pub
+        }
+        
         // Get initial value
         let getCurrentSceneItemList = try sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName))
         
@@ -123,24 +180,48 @@ extension OBSSessionManager {
             .filter { updatedScene in updatedScene == sceneName }
             .tryFlatMap { try self.sendRequest(OBSRequests.GetSceneItemList(sceneName: $0)) }
         
-        return Publishers.Merge(getCurrentSceneItemList, eventListener)
+        let pub = Publishers.Merge(getCurrentSceneItemList, eventListener)
             .tryMap { try $0.typedSceneItems() }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.sceneItemList.removeValue(forKey: sceneName)
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.sceneItemList[sceneName] = pub
+        return pub
     }
     
     /// Creates a `Publisher` that returns the active scene's list of scene items, updating with any changes.
     ///
     /// If the active scene changes, the returned `Publisher` will re-publish with the newly-active scene's list.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
     /// active scene changes. This includes if Studio Mode is enabled and the preview scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
-        try currentSceneNamePairPublisher()
+        if let pub = publishers.activeSceneItemList {
+            return pub
+        }
+        
+        let pub = try currentSceneNamePairPublisher()
             .map { $0.previewScene ?? $0.programScene }
             .tryFlatMap { try self.sceneItemListPublisher(forScene: $0) }
             .removeDuplicates()
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.activeSceneItemList = nil
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.activeSceneItemList = pub
+        return pub
     }
     
     /// A tuple pairing a scene item's enabled and locked statuses.
@@ -148,6 +229,10 @@ extension OBSSessionManager {
     
     /// Creates a `Publisher` that returns `SceneItemStatePair`s every time the provided scene item's
     /// state changes.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers. 
     /// - Parameters:
     ///   - sceneName: Name of the scene that the scene item is in.
     ///   - sceneItemId: Unique ID of the scene item.
@@ -156,6 +241,11 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
     /// re-publishes every time its state changes.
     public func sceneItemStatePublisher(inScene sceneName: String, withID sceneItemID: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
+        let publisherID = "\(sceneName).\(sceneItemID)"
+        if let pub = publishers.sceneItemState[publisherID] {
+            return pub
+        }
+        
         let enabledID = "\(sceneName).\(sceneItemID).enabled"
         let lockedID = "\(sceneName).\(sceneItemID).locked"
         let batch = try sendRequestBatch(requests: [
@@ -186,8 +276,16 @@ extension OBSSessionManager {
                     .map(\.sceneItemLocked))
         
         // Combine values together
-        return Publishers.CombineLatest(enabledStatus, lockedStatus)
+        let pub = Publishers.CombineLatest(enabledStatus, lockedStatus)
             .map { ($0, $1) as SceneItemStatePair }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.sceneItemState.removeValue(forKey: publisherID)
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.sceneItemState[publisherID] = pub
+        return pub
     }
 }
