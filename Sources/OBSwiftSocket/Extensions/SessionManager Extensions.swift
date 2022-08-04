@@ -93,9 +93,15 @@ extension OBSSessionManager {
                     .map { $0.sceneName as String? })
             .removeDuplicates()
             .combineLatest(programScene,
-                           try studioModeStatePublisher()) { latestPreviewSceneName, latestProgramSceneName, studioModeEnabled -> String? in
+                           try studioModeStatePublisher())
+            .scan(nil) { latestOutputPreview, combinedTuple -> String? in
+                var (latestPreview, latestProgram, studioModeEnabled) = combinedTuple
+                if latestOutputPreview == nil {
+                    latestPreview = nil
+                }
+                
                 return studioModeEnabled
-                    ? (latestPreviewSceneName ?? latestProgramSceneName)
+                    ? (latestPreview ?? latestProgram)
                     : nil
             }
             .removeDuplicates()
