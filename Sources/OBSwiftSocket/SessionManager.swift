@@ -246,8 +246,16 @@ extension OBSSessionManager {
 extension OBSSessionManager {
     /// Creates a `Publisher` that publishes any message received from the server.
     /// It contains the message in the form of an `UntypedMessage`.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
-        return wsPublisher.publisher
+        if let pub = publishers.anyOpCode {
+            return pub
+        }
+        
+        let pub = wsPublisher.publisher
             .tryFilter { event throws -> Bool in
                 switch event {
                 case .disconnected(let wsCloseCode, let reason):
@@ -269,28 +277,73 @@ extension OBSSessionManager {
                 default:
                     return nil
                 }
-            }.eraseToAnyPublisher()
+            }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.anyOpCode = nil
+            })
+            .share()
+            .eraseToAnyPublisher()
+        
+        publishers.anyOpCode = pub
+        return pub
     }
     
     /// Creates a `Publisher` that publishes the `data` property of any message
     /// received from the server. The `data` is mapped to an instace of the `OBSOpData` protocol.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
-        return publisherAnyOpCode
+        if let pub = publishers.anyOpCodeData {
+            return pub
+        }
+        
+        let pub = publisherAnyOpCode
             .tryMap { try $0.messageData() }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.anyOpCodeData = nil
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.anyOpCodeData = pub
+        return pub
     }
     
     /// Creates a `Publisher` that publishes all messages received from the server, filtered by the
     /// provided `OBSOpData` type.
     ///
     /// It doesn't complete on its own. It continues waiting until the subscriber is closed off.
+    /// 
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameter type: Message type for the created `Publisher` to filter (i.e.
     /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
-        return publisherAnyOpCodeData
+        if let pub = publishers.allMessagesOfType[type.opCode] {
+            return pub
+                .compactMap { $0 as? Op }
+                .eraseToAnyPublisher()
+        }
+        
+        let pub = publisherAnyOpCodeData
             .compactMap { $0 as? Op }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.allMessagesOfType.removeValue(forKey: type.opCode)
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.allMessagesOfType[type.opCode] = pub
+            .map { $0 as OBSOpData }
+            .eraseToAnyPublisher()
+        return pub
     }
     
     /// Creates a `Publisher` that publishes the first message received from the server of the provided
@@ -308,13 +361,24 @@ extension OBSSessionManager {
     
     /// Creates a `Publisher` that publishes the data of the first `OBSRequestResponse` message received
     /// from the server that matches the provided `OBSRequest` and message ID (if provided).
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameters:
     ///   - request: `OBSRequest` object for which the published `OBSRequestResponse` should be
     ///   associated with.
     ///   - id: If provided, the `Publisher` will confirm that the response message has the same ID.
     /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
-        return publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
+        let pubID = id ?? request.typeEnum?.rawValue ?? request.typeName
+        if let pub = publishers.responsePublishers[pubID] {
+            return pub
+                .compactMap { $0 as? R.ResponseType }
+                .eraseToAnyPublisher()
+        }
+        
+        let responsePub = publisher(forAllMessagesOfType: OpDataTypes.RequestResponse.self)
             .tryFilter { resp throws -> Bool in
                 // code == 100
                 guard resp.status.result else { throw Errors.requestResponseNotSuccess(resp.status) }
@@ -328,17 +392,43 @@ extension OBSSessionManager {
             .replaceNil(with: .emptyObject)
             .tryCompactMap { try $0.toCodable(request.type.ResponseType.self) }
             .first() // Finishes the stream after allowing 1 of the correct type through
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self, pubID] _ in
+                self?.publishers.responsePublishers.removeValue(forKey: pubID)
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.responsePublishers[pubID] = responsePub
+            .map { $0 as OBSRequestResponse }
+            .eraseToAnyPublisher()
+        
+        return responsePub
     }
     
     /// Creates a `Publisher` that publishes the `RequestBatchResponse` that matches the provided ID.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameter id: ID of the `RequestBatch` whose `RequestBatchResponse` should be published.
     /// - Returns: A `Publisher` that finishes when it receives `RequestBatchResponse` matching the provided ID.
     public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
-        return self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
+        if let pub = publishers.batchResponsePublishers[id] {
+            return pub
+        }
+        
+        let batchResponsePub = self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
             .filter { [id] receivedMsgBody in receivedMsgBody.id == id }
             .first() // Finishes the stream after allowing 1 of the correct type through
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.batchResponsePublishers.removeValue(forKey: id)
+            })
+            .share()
             .eraseToAnyPublisher()
+        
+        publishers.batchResponsePublishers[id] = batchResponsePub
+        return batchResponsePub
     }
 }
 
@@ -348,6 +438,10 @@ extension OBSSessionManager {
     /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
     ///
     /// This overload takes in an instance of `OBSEvents.AllTypes`.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameters:
     ///   - eventType: Type of `OBSEvent` to listen for.
     ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
@@ -357,19 +451,38 @@ extension OBSSessionManager {
     public func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
-        let pub = publisher(forAllMessagesOfType: OpDataTypes.Event.self)
+//        return Just((eventType, firstOnly))
+//            .flatMap { [weak self,
+//                
+//            }
+        if let pub = publishers.eventPublishers[eventType] {
+            return pub
+        }
+        
+        let messagePub = publisher(forAllMessagesOfType: OpDataTypes.Event.self)
             .filter { $0.type == eventType }
         
+        let eventPub: AnyPublisher<OpDataTypes.Event, Error>
         if firstOnly {
-            return pub
+            eventPub = messagePub
                 .first() // Finishes the stream after allowing 1 of the correct type through
-                .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
                 .eraseToAnyPublisher()
         } else { // .continuously
-            return pub
-                .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
+            eventPub = messagePub
                 .eraseToAnyPublisher()
         }
+        
+        let finalPub = eventPub
+            .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.eventPublishers.removeValue(forKey: eventType)
+            })
+            .share()
+            .eraseToAnyPublisher()
+        
+        publishers.eventPublishers[eventType] = finalPub
+        return finalPub
     }
     
     /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
@@ -392,6 +505,10 @@ extension OBSSessionManager {
     ///
     /// Doesn't complete on its own. It continues listening for any instances of the provided `OBSEvent` types
     ///  until the subscriber is closed off.
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameter eventTypes: Types of `OBSEvents.AllTypes` enums to listen for. (i.e. `OBSEvents.AllTypes.InputCreated`).
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
     /// Thrown by `checkForConnection()`.
@@ -399,12 +516,25 @@ extension OBSSessionManager {
     public func listenForEvents(_ eventTypes: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
-        return Publishers.MergeMany(eventTypes.map { t in
-            publisher(forAllMessagesOfType: OpDataTypes.Event.self)
-                .filter { $0.type == t }
-                .tryCompactMap { try OBSEvents.AllTypes.event(ofType: $0.type, from: $0.data) }
-        })
-        .eraseToAnyPublisher()
+        let eventGroupID = eventTypes
+            .sorted(by: { $0.rawValue < $1.rawValue })
+            .map(\.rawValue)
+            .joined(separator: ".")
+        
+        if let pub = publishers.eventGroupPublishers[eventGroupID] {
+            return pub
+        }
+        
+        let mergedPub = Publishers.MergeMany(try eventTypes.map { try listenForEvent($0, firstOnly: false) })
+            .receive(on: publisherDataQueue)
+            .handleEvents(receiveCompletion: { [weak self] _ in
+                self?.publishers.eventGroupPublishers.removeValue(forKey: eventGroupID)
+            })
+            .share()
+            .eraseToAnyPublisher()
+        
+        publishers.eventGroupPublishers[eventGroupID] = mergedPub
+        return mergedPub
     }
 }
 
