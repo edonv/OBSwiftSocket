@@ -562,3 +562,35 @@ extension OBSSessionManager {
         }
     }
 }
+
+extension OBSSessionManager {
+    internal class PublisherStore {
+        // MARK: Function-based Publishers (Dynamically Created)
+        
+        typealias ResponsePublisher = AnyPublisher<OBSRequestResponse, Error>
+        var responsePublishers = [String: ResponsePublisher]()
+        
+        typealias BatchResponsePublisher = AnyPublisher<OpDataTypes.RequestBatchResponse, Error>
+        var batchResponsePublishers = [String: BatchResponsePublisher]()
+        
+        typealias EventPublisher = AnyPublisher<OBSEvent, Error>
+        var eventPublishers = [OBSEvents.AllTypes: EventPublisher]()
+        var eventGroupPublishers = [String: EventPublisher]()
+        
+        var allMessagesOfType = [OBSEnums.OpCode: AnyPublisher<OBSOpData, Error>]()
+        
+        // MARK: Computed Publishers (Statically Created)
+        
+        var anyOpCode: AnyPublisher<UntypedMessage, Error>? = nil
+        var anyOpCodeData: AnyPublisher<OBSOpData, Error>? = nil
+        
+        // MARK: - Specialized Publishers
+        
+        var studioModeState: AnyPublisher<Bool, Error>? = nil
+        var currentSceneNamePair: AnyPublisher<SceneNamePair, Error>? = nil
+        var sceneList: AnyPublisher<[OBSRequests.Subtypes.Scene], Error>? = nil
+        var sceneItemList = [String: AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>]()
+        var activeSceneItemList: AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>? = nil
+        var sceneItemState = [String: AnyPublisher<SceneItemStatePair, Error>]()
+    }
+}
