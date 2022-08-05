@@ -32,7 +32,7 @@ public final class OBSSessionManager: ObservableObject {
     internal var publishers: PublisherStore
     
     /// The queue/scheduler to use for internal processes.
-    private let publisherDataQueue = DispatchQueue(label: "OBSSessionManager")
+    internal let publisherDataQueue = DispatchQueue(label: "OBSSessionManager")
     
     /// Contains any active `Combine` `Cancellable`s.
     private var observers = Set<AnyCancellable>()
