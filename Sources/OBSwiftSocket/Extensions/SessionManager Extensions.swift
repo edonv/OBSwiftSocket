@@ -70,6 +70,7 @@ extension OBSSessionManager {
             return publishers.currentSceneNamePair
         }
         if let pub = existingPub {
+            print("currentSceneNamePairPublisher found stored")
             return pub
         }
         
