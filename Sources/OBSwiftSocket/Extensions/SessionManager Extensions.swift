@@ -115,6 +115,7 @@ extension OBSSessionManager {
             .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
+                print("currentSceneNamePair completed, removed from store")
                 self?.publishers.currentSceneNamePair = nil
             })
             .shareReplay(1)
