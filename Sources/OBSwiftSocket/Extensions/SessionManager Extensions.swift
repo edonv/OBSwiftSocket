@@ -66,7 +66,10 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
     public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
-        if let pub = publishers.currentSceneNamePair {
+        let existingPub = publisherDataQueue.sync {
+            return publishers.currentSceneNamePair
+        }
+        if let pub = existingPub {
             return pub
         }
         
@@ -117,7 +120,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.currentSceneNamePair = pub
+        publisherDataQueue.sync {
+            publishers.currentSceneNamePair = pub
+        }
         return pub
     }
     
