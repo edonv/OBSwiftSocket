@@ -119,7 +119,7 @@ extension OBSSessionManager {
                 print("currentSceneNamePair completed, removed from store")
                 self?.publishers.currentSceneNamePair = nil
             })
-            .shareReplay(1)
+            .shareReplay(2)
             .eraseToAnyPublisher()
         
         publisherDataQueue.sync {
