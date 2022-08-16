@@ -128,16 +128,16 @@ extension Publisher {
 }
 
 extension Publisher where Failure: Error {
-    public func replaceError(with output: Output, where predicate: @escaping (Self.Failure) -> Bool) -> Publishers.Catch<Self, AnyPublisher<Output, Failure>> {
     /// Handles errors from an upstream publisher by replacing it with another publisher, but only if the
-    /// provided `predicate` returns `true`.
+    /// provided `handler` returns `true`.
     /// - Parameters:
     ///   - output: Value to replace the error with.
-    ///   - predicate: A closure that accepts the upstream failure as input and returns a publisher containing
+    ///   - handler: A closure that accepts the upstream failure as input and returns a publisher containing
     ///   the provided value to replace the upstream publisher.
+    public func replaceError(with output: Output, _ handler: @escaping (Self.Failure) -> Bool) -> Publishers.Catch<Self, AnyPublisher<Output, Failure>> {
         self
             .catch { error -> AnyPublisher<Output, Failure> in
-                if predicate(error) {
+                if handler(error) {
                     return Just(output)
                         .setFailureType(to: Failure.self)
                         .eraseToAnyPublisher()
