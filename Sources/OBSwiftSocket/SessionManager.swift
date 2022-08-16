@@ -693,5 +693,90 @@ extension OBSSessionManager {
     }
 }
 
+// MARK: Function-based Publishers (Dynamically Created)
+
+private struct ResponsePublishersKey: PublisherStoreKey {
+    typealias Value = [String: AnyPublisher<OBSRequestResponse, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var responsePublishers: [String: AnyPublisher<OBSRequestResponse, Error>] {
+        get { self[ResponsePublishersKey.self] }
+        set { self[ResponsePublishersKey.self] = newValue }
+    }
+}
+
+private struct BatchResponsePublishersKey: PublisherStoreKey {
+    typealias Value = [String: AnyPublisher<OpDataTypes.RequestBatchResponse, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var batchResponsePublishers: [String: AnyPublisher<OpDataTypes.RequestBatchResponse, Error>] {
+        get { self[BatchResponsePublishersKey.self] }
+        set { self[BatchResponsePublishersKey.self] = newValue }
+    }
+}
+
+private struct EventPublishersKey: PublisherStoreKey {
+    typealias Value = [OBSEvents.AllTypes: AnyPublisher<OBSEvent, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var eventPublishers: [OBSEvents.AllTypes: AnyPublisher<OBSEvent, Error>] {
+        get { self[EventPublishersKey.self] }
+        set { self[EventPublishersKey.self] = newValue }
+    }
+}
+
+private struct EventGroupPublishersKey: PublisherStoreKey {
+    typealias Value = [String: AnyPublisher<OBSEvent, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var eventGroupPublishers: [String: AnyPublisher<OBSEvent, Error>] {
+        get { self[EventGroupPublishersKey.self] }
+        set { self[EventGroupPublishersKey.self] = newValue }
+    }
+}
+
+private struct AllMessagesOfTypeKey: PublisherStoreKey {
+    typealias Value = [OBSEnums.OpCode: AnyPublisher<OBSOpData, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var allMessagesOfType: [OBSEnums.OpCode: AnyPublisher<OBSOpData, Error>] {
+        get { self[AllMessagesOfTypeKey.self] }
+        set { self[AllMessagesOfTypeKey.self] = newValue }
+    }
+}
+
+// MARK: Computed Publishers (Statically Created)
+
+private struct AnyOpCodeKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<UntypedMessage, Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var anyOpCode: AnyPublisher<UntypedMessage, Error>? {
+        get { self[AnyOpCodeKey.self] }
+        set { self[AnyOpCodeKey.self] = newValue }
+    }
+}
+
+private struct AnyOpCodeDataKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<OBSOpData, Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var anyOpCodeData: AnyPublisher<OBSOpData, Error>? {
+        get { self[AnyOpCodeDataKey.self] }
+        set { self[AnyOpCodeDataKey.self] = newValue }
     }
 }
