@@ -302,3 +302,78 @@ extension OBSSessionManager {
         return pub
     }
 }
+
+// MARK: - Specialized Publishers
+
+private struct StudioModeStateKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<Bool, Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var studioModeState: AnyPublisher<Bool, Error>? {
+        get { self[StudioModeStateKey.self] }
+        set { self[StudioModeStateKey.self] = newValue }
+    }
+}
+
+private struct CurrentSceneNamePairKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<OBSSessionManager.SceneNamePair, Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var currentSceneNamePair: AnyPublisher<OBSSessionManager.SceneNamePair, Error>? {
+        get { self[CurrentSceneNamePairKey.self] }
+        set { self[CurrentSceneNamePairKey.self] = newValue }
+    }
+}
+
+private struct SceneListKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<[OBSRequests.Subtypes.Scene], Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var sceneList: AnyPublisher<[OBSRequests.Subtypes.Scene], Error>? {
+        get { self[SceneListKey.self] }
+        set { self[SceneListKey.self] = newValue }
+    }
+}
+
+private struct SceneItemListKey: PublisherStoreKey {
+    typealias Value = [String: AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var sceneItemList: [String: AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>] {
+        get { self[SceneItemListKey.self] }
+        set { self[SceneItemListKey.self] = newValue }
+    }
+}
+
+private struct ActiveSceneItemListKey: PublisherStoreKey {
+    typealias Value = AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>?
+    static var defaultValue: Value = nil
+}
+
+extension OBSSessionManager.PublisherStore {
+    var activeSceneItemList: AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error>? {
+        get { self[ActiveSceneItemListKey.self] }
+        set { self[ActiveSceneItemListKey.self] = newValue }
+    }
+}
+
+private struct SceneItemStateKey: PublisherStoreKey {
+    typealias Value = [String: AnyPublisher<OBSSessionManager.SceneItemStatePair, Error>]
+    static var defaultValue: Value = [:]
+}
+
+extension OBSSessionManager.PublisherStore {
+    var sceneItemState: [String: AnyPublisher<OBSSessionManager.SceneItemStatePair, Error>] {
+        get { self[SceneItemStateKey.self] }
+        set { self[SceneItemStateKey.self] = newValue }
+    }
+}
+
