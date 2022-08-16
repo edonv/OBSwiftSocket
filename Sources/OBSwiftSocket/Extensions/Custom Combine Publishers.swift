@@ -33,13 +33,11 @@ extension Publishers {
             self.bufferSize = bufferSize
         }
         
-        /// Provides this Subject an opportunity to establish demand for any new upstream subscriptions
         public func send(subscription: Subscription) {
             lock.lock(); defer { lock.unlock() }
             subscription.request(.unlimited)
         }
         
-        /// Sends a value to the subscriber.
         public func send(_ value: Output) {
             lock.lock(); defer { lock.unlock() }
             buffer.append(value)
@@ -47,14 +45,12 @@ extension Publishers {
             subscriptions.forEach { $0.receive(value) }
         }
         
-        /// Sends a completion signal to the subscriber.
         public func send(completion: Subscribers.Completion<Failure>) {
             lock.lock(); defer { lock.unlock() }
             self.completion = completion
             subscriptions.forEach { subscription in subscription.receive(completion: completion) }
         }
         
-        /// This function is called to attach the specified `Subscriber` to the`Publisher
         public func receive<Downstream: Subscriber>(subscriber: Downstream) where Downstream.Failure == Failure, Downstream.Input == Output {
             lock.lock(); defer { lock.unlock() }
             let subscription = Subscriptions.ReplaySubject<Output, Failure>(downstream: AnySubscriber(subscriber))
