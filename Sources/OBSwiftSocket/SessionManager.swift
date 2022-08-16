@@ -421,6 +421,7 @@ extension OBSSessionManager {
         let batchResponsePub = self.publisher(forAllMessagesOfType: OpDataTypes.RequestBatchResponse.self)
             .filter { [id] receivedMsgBody in receivedMsgBody.id == id }
             .first() // Finishes the stream after allowing 1 of the correct type through
+            .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
                 self?.publishers.batchResponsePublishers.removeValue(forKey: id)
             })
