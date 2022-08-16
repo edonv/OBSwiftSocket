@@ -143,6 +143,17 @@ extension Publisher where Failure: Error {
     }
 }
 
+extension Publisher where Failure: Error, Failure: Equatable {
+    /// Handles errors from an upstream publisher by replacing it with another publisher, but only if the
+    /// error matches the provided error.
+    /// - Parameters:
+    ///   - error: `Error` to replace.
+    ///   - output: Value to replace the error with.
+    public func replaceError(_ error: Self.Failure, with output: Output) -> Publishers.Catch<Self, AnyPublisher<Output, Failure>> {
+        self.replaceError(with: output) { $0 == error }
+    }
+}
+
 // MARK: - UserDefaults
 
 extension UserDefaults {
