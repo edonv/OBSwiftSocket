@@ -21,10 +21,10 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(
-            name: "swift-format",
-            url: "https://github.com/apple/swift-format.git",
-            .upToNextMinor(from: "0.50300.0")),
+//        .package(
+//            name: "swift-format",
+//            url: "https://github.com/apple/swift-format.git",
+//            .upToNextMinor(from: "0.50300.0")),
         .package(name: "JSONValue",
             url: "https://github.com/edonv/JSONValue.git",
             .branch("main")),
@@ -53,7 +53,7 @@ let package = Package(
         ),
         .target(
             name: "Scripts",
-            dependencies: ["JSONValue", "swift-format"],
+            dependencies: ["JSONValue"],
             resources: [
                 .copy("Resources")
             ]
