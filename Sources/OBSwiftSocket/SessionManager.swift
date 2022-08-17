@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import WSPublisher
 import MessagePacker
+import CombineExtensions
 
 /// Manages connection sessions with OBS.
 public final class OBSSessionManager: ObservableObject {

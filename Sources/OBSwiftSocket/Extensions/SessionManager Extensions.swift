@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import JSONValue
+import CombineExtensions
 
 extension OBSSessionManager {
     public func getStudioModeStateOnce() throws -> AnyPublisher<Bool, Error> {
