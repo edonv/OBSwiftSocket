@@ -31,14 +31,22 @@ let package = Package(
         .package(
             name: "MessagePacker",
             url: "https://github.com/hirotakan/MessagePacker.git",
-            .upToNextMajor(from: "0.0.0"))
+            .upToNextMajor(from: "0.0.0")),
+        .package(name: "CommonExtensions",
+                 url: "https://github.com/edonv/CommonExtensions.git",
+                 .branch("main")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "OBSwiftSocket",
-            dependencies: ["JSONValue", "WSPublisher", "MessagePacker"]
+            dependencies: [
+                "JSONValue",
+                "WSPublisher",
+                "MessagePacker",
+                .product(name: "CombineExtensions", package: "CommonExtensions")
+            ]
         ),
         .target(
             name: "WSPublisher"
@@ -52,6 +60,9 @@ let package = Package(
         ),
         .testTarget(
             name: "OBSwiftSocketTests",
-            dependencies: ["OBSwiftSocket"]),
+            dependencies: [
+                "OBSwiftSocket",
+                .product(name: "CombineExtensions", package: "CommonExtensions")
+            ]),
     ]
 )
