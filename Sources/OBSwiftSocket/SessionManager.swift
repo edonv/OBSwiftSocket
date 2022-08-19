@@ -65,6 +65,13 @@ public final class OBSSessionManager {
     
     /// Describes the current connection state of the session.
     @Published public var connectionState: ConnectionState = .disconnected
+    
+    public var waitUntilConnected: AnyPublisher<Void, Error> {
+        return $connectionState
+            .filter { $0 == .active }
+            .setFailureType(to: Error.self)
+            .asVoid()
+    }
 }
 
 // MARK: - Connections
