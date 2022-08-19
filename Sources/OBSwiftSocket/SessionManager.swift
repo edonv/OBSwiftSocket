@@ -12,7 +12,7 @@ import MessagePacker
 import CombineExtensions
 
 /// Manages connection sessions with OBS.
-public final class OBSSessionManager: ObservableObject {
+public final class OBSSessionManager {
     // MARK: - Initializers
     
     /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
