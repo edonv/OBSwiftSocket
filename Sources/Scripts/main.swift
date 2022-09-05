@@ -7,8 +7,6 @@
 
 import Foundation
 import JSONValue
-import SwiftFormat
-import SwiftFormatConfiguration
 
 generateProtocol()
 
