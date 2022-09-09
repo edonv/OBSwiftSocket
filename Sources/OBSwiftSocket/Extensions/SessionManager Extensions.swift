@@ -31,7 +31,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing a `Bool` that re-publishes every time the state of Studio Mode changes.
     public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
-        if let pub = publishers.studioModeState {
+        if let pub = publisherDataQueue.sync { publishers.studioModeState } {
             return pub
         }
         
@@ -49,7 +49,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.studioModeState = pub
+        publisherDataQueue.sync {
+            publishers.studioModeState = pub
+        }
         return pub
     }
     
@@ -67,11 +69,8 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
     public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
-        let existingPub = publisherDataQueue.sync {
-            return publishers.currentSceneNamePair
-        }
-        if let pub = existingPub {
             print("currentSceneNamePairPublisher found stored")
+        if let pub = publisherDataQueue.sync { publishers.currentSceneNamePair } {
             return pub
         }
         
@@ -138,7 +137,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene list that re-publishes every time the list changes.
     public func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
-        if let pub = publishers.sceneList {
+        if let pub = publisherDataQueue.sync { publishers.sceneList } {
             return pub
         }
         
@@ -158,7 +157,10 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.sceneList = pub
+        publisherDataQueue.sync {
+            publishers.sceneList = pub
+        }
+        
         return pub
     }
     
@@ -172,7 +174,7 @@ extension OBSSessionManager {
     /// Thrown by `checkForConnection()`.
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list changes.
     public func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
-        if let pub = publishers.sceneItemList[sceneName] {
+        if let pub = publisherDataQueue.sync { publishers.sceneItemList[sceneName] } {
             return pub
         }
         
@@ -203,7 +205,10 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.sceneItemList[sceneName] = pub
+        publisherDataQueue.sync {
+            publishers.sceneItemList[sceneName] = pub
+        }
+        
         return pub
     }
     
@@ -219,7 +224,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
     /// active scene changes. This includes if Studio Mode is enabled and the preview scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
-        if let pub = publishers.activeSceneItemList {
+        if let pub = publisherDataQueue.sync { publishers.activeSceneItemList } {
             return pub
         }
         
@@ -234,7 +239,10 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.activeSceneItemList = pub
+        publisherDataQueue.sync {
+            publishers.activeSceneItemList = pub
+        }
+        
         return pub
     }
     
@@ -256,7 +264,6 @@ extension OBSSessionManager {
     /// re-publishes every time its state changes.
     public func sceneItemStatePublisher(inScene sceneName: String, withID sceneItemID: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
         let publisherID = "\(sceneName).\(sceneItemID)"
-        if let pub = publishers.sceneItemState[publisherID] {
             return pub
         }
         
@@ -299,7 +306,10 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
-        publishers.sceneItemState[publisherID] = pub
+        publisherDataQueue.sync {
+            publishers.sceneItemState[publisherID] = pub
+        }
+        
         return pub
     }
 }

@@ -259,7 +259,7 @@ extension OBSSessionManager {
     /// it is a class/reference-type, and all subscribers will use the same one via
     /// all other publishers.
     public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
-        if let pub = publishers.anyOpCode {
+        if let pub = publisherDataQueue.sync { publishers.anyOpCode } {
             return pub
         }
         
@@ -293,7 +293,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.anyOpCode = pub
+        }
         return pub
     }
     
@@ -304,7 +306,7 @@ extension OBSSessionManager {
     /// it is a class/reference-type, and all subscribers will use the same one via
     /// all other publishers.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
-        if let pub = publishers.anyOpCodeData {
+        if let pub = publisherDataQueue.sync { publishers.anyOpCodeData } {
             return pub
         }
         
@@ -317,7 +319,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.anyOpCodeData = pub
+        }
         return pub
     }
     
@@ -333,7 +337,7 @@ extension OBSSessionManager {
     /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
-        if let pub = publishers.allMessagesOfType[type.opCode] {
+        if let pub = publisherDataQueue.sync { publishers.allMessagesOfType[type.opCode] } {
             return pub
                 .compactMap { $0 as? Op }
                 .eraseToAnyPublisher()
@@ -348,9 +352,11 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.allMessagesOfType[type.opCode] = pub
             .map { $0 as OBSOpData }
             .eraseToAnyPublisher()
+        }
         return pub
     }
     
@@ -380,7 +386,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         let pubID = id ?? request.typeEnum?.rawValue ?? request.typeName
-        if let pub = publishers.responsePublishers[pubID] {
+        if let pub = publisherDataQueue.sync { publishers.responsePublishers[pubID] } {
             return pub
                 .compactMap { $0 as? R.ResponseType }
                 .eraseToAnyPublisher()
@@ -407,9 +413,11 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.responsePublishers[pubID] = responsePub
             .map { $0 as OBSRequestResponse }
             .eraseToAnyPublisher()
+        }
         
         return responsePub
     }
@@ -422,7 +430,7 @@ extension OBSSessionManager {
     /// - Parameter id: ID of the `RequestBatch` whose `RequestBatchResponse` should be published.
     /// - Returns: A `Publisher` that finishes when it receives `RequestBatchResponse` matching the provided ID.
     public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
-        if let pub = publishers.batchResponsePublishers[id] {
+        if let pub = publisherDataQueue.sync { publishers.batchResponsePublishers[id] } {
             return pub
         }
         
@@ -436,7 +444,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.batchResponsePublishers[id] = batchResponsePub
+        }
         return batchResponsePub
     }
 }
@@ -464,7 +474,7 @@ extension OBSSessionManager {
 //            .flatMap { [weak self,
 //                
 //            }
-        if let pub = publishers.eventPublishers[eventType] {
+        if let pub = publisherDataQueue.sync { publishers.eventPublishers[eventType] } {
             return pub
         }
         
@@ -490,7 +500,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.eventPublishers[eventType] = finalPub
+        }
         return finalPub
     }
     
@@ -530,7 +542,7 @@ extension OBSSessionManager {
             .map(\.rawValue)
             .joined(separator: ".")
         
-        if let pub = publishers.eventGroupPublishers[eventGroupID] {
+        if let pub = publisherDataQueue.sync { publishers.eventGroupPublishers[eventGroupID] } {
             return pub
         }
         
@@ -542,7 +554,9 @@ extension OBSSessionManager {
             .share()
             .eraseToAnyPublisher()
         
+        publisherDataQueue.sync {
         publishers.eventGroupPublishers[eventGroupID] = mergedPub
+        }
         return mergedPub
     }
 }
