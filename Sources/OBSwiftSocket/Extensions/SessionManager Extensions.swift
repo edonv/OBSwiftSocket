@@ -264,6 +264,7 @@ extension OBSSessionManager {
     /// re-publishes every time its state changes.
     public func sceneItemStatePublisher(inScene sceneName: String, withID sceneItemID: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
         let publisherID = "\(sceneName).\(sceneItemID)"
+        if let pub = publisherDataQueue.sync { publishers.sceneItemState[publisherID] } {
             return pub
         }
         
