@@ -15,6 +15,8 @@ public protocol PublisherStoreKey {
 
 extension OBSSessionManager {
     public class PublisherStore {
+        private static let storeQueue = DispatchQueue(label: "obs.swiftsocket.publisherstore", qos: .default)
+
         public typealias Key = PublisherStoreKey
         
         private var values: [ObjectIdentifier: Any] = [:]
@@ -23,10 +25,14 @@ extension OBSSessionManager {
         
         public subscript<K: Key>(key: K.Type) -> K.Value {
             get {
-                return values[ObjectIdentifier(key)] as? K.Value
-                    ?? key.defaultValue
+                return PublisherStore.storeQueue.sync {
+                    values[ObjectIdentifier(key)] as? K.Value
+                        ?? key.defaultValue
+                }
             } set {
-                values[ObjectIdentifier(key)] = newValue
+                PublisherStore.storeQueue.sync {
+                    values[ObjectIdentifier(key)] = newValue
+                }
             }
         }
     }
