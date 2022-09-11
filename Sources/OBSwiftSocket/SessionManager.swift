@@ -69,6 +69,7 @@ public final class OBSSessionManager {
     public var waitUntilConnected: AnyPublisher<Void, Error> {
         return $connectionState
             .filter { $0 == .active }
+            .removeDuplicates()
             .setFailureType(to: Error.self)
             .asVoid()
     }
