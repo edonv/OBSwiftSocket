@@ -36,3 +36,23 @@ public protocol StateManagerProtocol: ObservableObject {
     func setUpObservers()
 }
 
+public extension StateManagerProtocol {
+    func sendRequest<R: OBSRequest>(_ request: R, _ waitUntilConnected: Bool = true) -> AnyPublisher<R.ResponseType, Error> {
+        if waitUntilConnected {
+            return session.waitUntilConnected
+                .tryFlatMap { try self.session.sendRequest(request) }
+                .eraseToAnyPublisher()
+        } else {
+            return Just(())
+                .setFailureType(to: Error.self)
+                .tryFlatMap { try self.session.sendRequest(request) }
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    func storeObserver(_ cancellable: AnyCancellable) {
+        cancellable.store(in: &observers)
+    }
+
+}
+
