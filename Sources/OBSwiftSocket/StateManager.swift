@@ -50,9 +50,17 @@ public extension StateManagerProtocol {
         }
     }
     
-    func storeObserver(_ cancellable: AnyCancellable) {
+    func storeCancellable(_ cancellable: AnyCancellable) {
         cancellable.store(in: &observers)
     }
-
+    
+    func storePublisher<P: Publisher>(_ publisher: P,
+                                      receiveCompletion: ((Subscribers.Completion<P.Failure>) -> Void)? = nil,
+                                      receiveValue: ((P.Output) -> Void)? = nil) {
+        publisher
+            .sink(receiveCompletion: receiveCompletion ?? { _ in },
+                  receiveValue: receiveValue ?? { _ in })
+            .store(in: &observers)
+    }
 }
 
