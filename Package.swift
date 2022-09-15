@@ -14,10 +14,6 @@ let package = Package(
         .library(
             name: "OBSwiftSocket",
             targets: ["OBSwiftSocket"]),
-        
-        .library(
-            name: "WSPublisher",
-            targets: ["WSPublisher"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -28,6 +24,9 @@ let package = Package(
         .package(name: "JSONValue",
             url: "https://github.com/edonv/JSONValue.git",
             .branch("main")),
+        .package(name: "WSPublisher",
+                 url: "https://github.com/edonv/WSPublisher.git",
+                 .branch("main")),
         .package(
             name: "MessagePacker",
             url: "https://github.com/hirotakan/MessagePacker.git",
@@ -47,9 +46,6 @@ let package = Package(
                 "MessagePacker",
                 .product(name: "CombineExtensions", package: "CommonExtensions")
             ]
-        ),
-        .target(
-            name: "WSPublisher"
         ),
         .target(
             name: "Scripts",
