@@ -51,6 +51,7 @@ extension OBSSessionManager {
         publisherDataQueue.sync {
             publishers.studioModeState = pub
         }
+        
         return pub
     }
     
@@ -122,6 +123,7 @@ extension OBSSessionManager {
         publisherDataQueue.sync {
             publishers.currentSceneNamePair = pub
         }
+        
         return pub
     }
     
