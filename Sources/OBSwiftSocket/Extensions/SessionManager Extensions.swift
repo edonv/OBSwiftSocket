@@ -117,7 +117,7 @@ extension OBSSessionManager {
             .handleEvents(receiveCompletion: { [weak self] _ in
                 self?.publishers.currentSceneNamePair = nil
             })
-            .shareReplay(1)
+            .share()
             .eraseToAnyPublisher()
         
         publisherDataQueue.sync {
