@@ -43,7 +43,6 @@ extension OBSSessionManager {
             .removeDuplicates()
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
-                print("Main thread inside on complete?:", Thread.isMainThread)
                 self?.publishers.studioModeState = nil
             })
             .share()
@@ -69,7 +68,6 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
     /// program and preview scenes change.
     public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
-            print("currentSceneNamePairPublisher found stored")
         if let pub = publisherDataQueue.sync(execute: { publishers.currentSceneNamePair }) {
             return pub
         }
@@ -116,7 +114,6 @@ extension OBSSessionManager {
             .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
-                print("currentSceneNamePair completed, removed from store")
                 self?.publishers.currentSceneNamePair = nil
             })
             .shareReplay(1)
