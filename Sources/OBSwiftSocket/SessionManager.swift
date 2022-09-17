@@ -471,10 +471,6 @@ extension OBSSessionManager {
     public func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
-//        return Just((eventType, firstOnly))
-//            .flatMap { [weak self,
-//                
-//            }
         if let pub = publisherDataQueue.sync(execute: { publishers.eventPublishers[eventType] }) {
             return pub
         }
