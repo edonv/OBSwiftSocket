@@ -260,7 +260,7 @@ extension OBSSessionManager {
     /// it is a class/reference-type, and all subscribers will use the same one via
     /// all other publishers.
     public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
-        if let pub = publisherDataQueue.sync { publishers.anyOpCode } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.anyOpCode }) {
             return pub
         }
         
@@ -307,7 +307,7 @@ extension OBSSessionManager {
     /// it is a class/reference-type, and all subscribers will use the same one via
     /// all other publishers.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
-        if let pub = publisherDataQueue.sync { publishers.anyOpCodeData } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.anyOpCodeData }) {
             return pub
         }
         
@@ -338,7 +338,7 @@ extension OBSSessionManager {
     /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
-        if let pub = publisherDataQueue.sync { publishers.allMessagesOfType[type.opCode] } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.allMessagesOfType[type.opCode] }) {
             return pub
                 .compactMap { $0 as? Op }
                 .eraseToAnyPublisher()
@@ -387,7 +387,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         let pubID = id ?? request.typeEnum?.rawValue ?? request.typeName
-        if let pub = publisherDataQueue.sync { publishers.responsePublishers[pubID] } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.responsePublishers[pubID] }) {
             return pub
                 .compactMap { $0 as? R.ResponseType }
                 .eraseToAnyPublisher()
@@ -431,7 +431,7 @@ extension OBSSessionManager {
     /// - Parameter id: ID of the `RequestBatch` whose `RequestBatchResponse` should be published.
     /// - Returns: A `Publisher` that finishes when it receives `RequestBatchResponse` matching the provided ID.
     public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
-        if let pub = publisherDataQueue.sync { publishers.batchResponsePublishers[id] } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.batchResponsePublishers[id] }) {
             return pub
         }
         
@@ -475,7 +475,7 @@ extension OBSSessionManager {
 //            .flatMap { [weak self,
 //                
 //            }
-        if let pub = publisherDataQueue.sync { publishers.eventPublishers[eventType] } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.eventPublishers[eventType] }) {
             return pub
         }
         
@@ -543,7 +543,7 @@ extension OBSSessionManager {
             .map(\.rawValue)
             .joined(separator: ".")
         
-        if let pub = publisherDataQueue.sync { publishers.eventGroupPublishers[eventGroupID] } {
+        if let pub = publisherDataQueue.sync(execute: { publishers.eventGroupPublishers[eventGroupID] }) {
             return pub
         }
         
