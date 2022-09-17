@@ -506,6 +506,10 @@ extension OBSSessionManager {
     /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
     ///
     /// This overload takes in a metatype of a `OBSEvents` type. (i.e. `OBSEvents.InputCreated.self`)
+    ///
+    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via
+    /// all other publishers.
     /// - Parameters:
     ///   - eventType: Type of `OBSEvent` to listen for.
     ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
