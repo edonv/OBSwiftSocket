@@ -1,5 +1,5 @@
 //
-//  OBS-WS Subtypes.swift
+//  Request Subtypes.swift
 //  
 //
 //  Created by Edon Valdman on 7/10/22.
