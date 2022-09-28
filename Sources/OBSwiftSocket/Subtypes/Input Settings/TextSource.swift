@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 extension InputSettings {
     /// text_ft2_source_v2 (mac)
