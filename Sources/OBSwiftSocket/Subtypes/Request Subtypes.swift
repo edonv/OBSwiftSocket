@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import JSONValue
 
 // MARK: - OBSRequests
 
@@ -96,6 +97,24 @@ extension OBSRequests.GetGroupSceneItemList.Response {
     /// - Returns: Mapped typed `sceneItems`.
     public func typedSceneItems() throws -> [OBSRequests.Subtypes.SceneItem] {
         return try self.sceneItems.map { try $0.toCodable(OBSRequests.Subtypes.SceneItem.self) }
+    }
+}
+
+extension OBSRequests.SetSceneItemTransform {
+    public init(sceneName: String, sceneItemId: Int, sceneItemTransform: OBSRequests.Subtypes.Transform) throws {
+        self.sceneName = sceneName
+        self.sceneItemId = sceneItemId
+        self.sceneItemTransform = try JSONValue.fromCodable(sceneItemTransform)
+    }
+    
+    public func typedTransform() throws -> OBSRequests.Subtypes.Transform {
+        return try self.sceneItemTransform.toCodable(OBSRequests.Subtypes.Transform.self)
+    }
+}
+
+extension OBSRequests.GetSceneItemTransform.Response {
+    public func typedTransform() throws -> OBSRequests.Subtypes.Transform {
+        return try self.sceneItemTransform.toCodable(OBSRequests.Subtypes.Transform.self)
     }
 }
 
