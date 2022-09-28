@@ -27,6 +27,9 @@ public protocol StateManagerProtocol: ObservableObject {
     var observers: Set<AnyCancellable> { get set }
     
     /// Intialize from an existing session.
+    ///
+    /// This should be used to set `session`, initialize `observers`, and give your `@Published`
+    /// properties initial values.
     /// - Parameter session: Reference to an existing session to use.
     init(session: OBSSessionManager)
     
