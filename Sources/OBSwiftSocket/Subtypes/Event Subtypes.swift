@@ -12,6 +12,8 @@ import Foundation
 extension OBSEvents {
     public enum Subtypes {
         public typealias Scene = OBSRequests.Subtypes.Scene
+        public typealias Transform = OBSRequests.Subtypes.Transform
+        
 //        public struct SceneItem: Codable {
 //            public init(sceneItemId: Int, sceneItemIndex: Int) {
 //                self.sceneItemId = sceneItemId
@@ -37,6 +39,12 @@ extension OBSEvents.SceneListChanged {
     /// - Returns: Mapped typed `scenes`.
     public func typedScenes() throws -> [OBSEvents.Subtypes.Scene] {
         return try self.scenes.map { try $0.toCodable(OBSRequests.Subtypes.Scene.self) }
+    }
+}
+
+extension OBSEvents.SceneItemTransformChanged {
+    public func typedTransform() throws -> OBSEvents.Subtypes.Transform {
+        return try self.sceneItemTransform.toCodable(OBSEvents.Subtypes.Transform.self)
     }
 }
 
