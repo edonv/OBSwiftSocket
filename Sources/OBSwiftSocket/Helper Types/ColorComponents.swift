@@ -73,6 +73,15 @@ extension ColorComponents {
         guard let uiColor = uiColor else { return nil }
         self.init(cgColor: uiColor.cgColor)
     }
+    
+    public var uiColor: UIColor {
+        UIColor(
+            red: CGFloat(red / 255),
+            green: CGFloat(green / 255),
+            blue: CGFloat(blue / 255),
+            alpha: CGFloat(alpha / 255)
+        )
+    }
     #endif
     
     #if canImport(AppKit)
@@ -80,12 +89,31 @@ extension ColorComponents {
         guard let nsColor = nsColor else { return nil }
         self.init(cgColor: nsColor.cgColor)
     }
+    
+    public var nsColor: NSColor {
+        NSColor(
+            srgbRed: CGFloat(red / 255),
+            green: CGFloat(green / 255),
+            blue: CGFloat(blue / 255),
+            alpha: CGFloat(alpha / 255)
+        )
+    }
     #endif
     
     @available(iOS 14, macOS 11, *)
     public init?(color: Color?) {
         guard let cgColor = color?.cgColor else { return nil }
         self.init(cgColor: cgColor)
+    }
+    
+    @available(iOS 13, macOS 10.15, *)
+    public var color: Color {
+        Color(.sRGB,
+              red: Double(red / 255),
+              green: Double(green / 255),
+              blue: Double(blue / 255),
+              opacity: Double(alpha / 255)
+        )
     }
 }
 
