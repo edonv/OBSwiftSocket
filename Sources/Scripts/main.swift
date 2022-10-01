@@ -468,7 +468,7 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 var initParams = [String]()
                 var initBody = [String]()
                 
-                // Request Fields
+                // MARK: Request Fields
                 let reqFields = r.requestFields.map { field -> String in
                     var valueType = mapType(field.valueType, field.valueRestrictions)
                     
@@ -741,7 +741,7 @@ func generateEvents(_ events: [OBSEvent]) -> String {
             var initParams = [String]()
             var initBody = [String]()
             
-            // Data Fields
+            // MARK: Data Fields
             let dataFields = ev.dataFields.map { field -> String in
                 var valueType = mapType(field.valueType, nil)
                 
