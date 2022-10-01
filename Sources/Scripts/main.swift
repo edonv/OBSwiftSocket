@@ -93,7 +93,6 @@ struct OBSRequest: Codable, Hashable {
                 valueType = (field.valueName.prefix(1).uppercased() + field.valueName.dropFirst())
             }
             
-            // STILL NEED TO ADD INIT HERE
             initParams.append("\(field.valueName): \(valueType)")
             initBody.append("self.\(field.valueName) = \(field.valueName)")
             
