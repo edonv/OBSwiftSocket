@@ -84,6 +84,11 @@ struct OBSRequest: Codable, Hashable {
         var fullStr = normalFields.map { field -> String in
             var valueType = mapType(field.valueType, nil)
             
+            // Check if it's been confirmed that it should actually be a decimal and not an integer
+            if valueType == "Int" && floatProperties().contains("\(self.requestType).\(field.valueName)") {
+                valueType = "Float"
+            }
+            
             if subTypes.contains(where: { $0.valueName.contains(field.valueName) }) {
                 valueType = (field.valueName.prefix(1).uppercased() + field.valueName.dropFirst())
             }
@@ -123,7 +128,11 @@ struct OBSRequest: Codable, Hashable {
                 }
             
             let initParams = subTypeFields.map { field -> String in
-                let valueType = mapType(field.valueType, nil)
+                var valueType = mapType(field.valueType, nil)
+                // Check if it's been confirmed that it should actually be a decimal and not an integer
+                if valueType == "Int" && floatProperties().contains("\(self.requestType).\(sub.valueName).\(field.valueName)") {
+                    valueType = "Float"
+                }
                 return "\(field.valueName): \(valueType)"
             }.joined(separator: ", ")
             
@@ -138,7 +147,12 @@ struct OBSRequest: Codable, Hashable {
                 public struct \(sub.valueName.prefix(1).uppercased() + sub.valueName.dropFirst()): Codable {
                 """
                 + "\n" + subTypeFields.map { field -> String in
-                    let valueType = mapType(field.valueType, nil)
+                    var valueType = mapType(field.valueType, nil)
+                    
+                    // Check if it's been confirmed that it should actually be a decimal and not an integer
+                    if valueType == "Int" && floatProperties().contains("\(self.requestType).\(sub.valueName).\(field.valueName)") {
+                        valueType = "Float"
+                    }
                     
                     return [
                         field.valueDescription
@@ -240,11 +254,21 @@ func mapType(_ oldType: String, _ valueRestrictions: String?) -> String {
     if let restrictions = valueRestrictions,
        restrictions.contains(".") {
         return newType
-            .replacingOccurrences(of: "Number", with: "Double")
+            .replacingOccurrences(of: "Number", with: "Float")
     } else {
         return newType
             .replacingOccurrences(of: "Number", with: "Int")
     }
+}
+
+func floatProperties() -> [String] {
+    [
+        "GetStats.Response.availableDiskSpace",
+        "GetStats.Response.cpuUsage",
+        "GetStats.Response.averageFrameRenderTime",
+        "GetStats.Response.memoryUsage",
+        "GetStats.Response.activeFps"
+    ]
 }
 
 func createTabs(_ numberOfTabs: Int) -> String {
@@ -448,6 +472,11 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 let reqFields = r.requestFields.map { field -> String in
                     var valueType = mapType(field.valueType, field.valueRestrictions)
                     
+                    // Check if it's been confirmed that it should actually be a decimal and not an integer
+                    if valueType == "Int" && floatProperties().contains("\(r.requestType).\(field.valueName)") {
+                        valueType = "Float"
+                    }
+                    
                     if let range = field.valueDescription.range(of: #"(`\w+`) enum"#, options: .regularExpression) {
                         let substring = String(field.valueDescription[range])
                             .replacingOccurrences(of: "`", with: "")
@@ -533,7 +562,12 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 """
                 public struct Response: OBSRequestResponse {
                 \(r.responseFields.map { field -> String in
-                    let valueType = mapType(field.valueType, nil)
+                    var valueType = mapType(field.valueType, nil)
+                    
+                    // Check if it's been confirmed that it should actually be a decimal and not an integer
+                    if valueType == "Int" && floatProperties().contains("\(r.requestType).Response.\(field.valueName)") {
+                        valueType = "Float"
+                    }
                     
                     let optional = field.valueDescription.contains("null")
                         ? "?" : ""
@@ -618,7 +652,13 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
             var decodableStr = ""
             
             for field in r.requestFields {
-                let valueType = mapType(field.valueType, field.valueRestrictions)
+                var valueType = mapType(field.valueType, field.valueRestrictions)
+                
+                // Check if it's been confirmed that it should actually be a decimal and not an integer
+                if valueType == "Int" && floatProperties().contains("\(r.requestType).\(field.valueName)") {
+                    valueType = "Float"
+                }
+                
                 encodableStr += "\n\(createTabs(2))"
                 decodableStr += "\n\(createTabs(2))"
                 
@@ -704,6 +744,12 @@ func generateEvents(_ events: [OBSEvent]) -> String {
             // Data Fields
             let dataFields = ev.dataFields.map { field -> String in
                 var valueType = mapType(field.valueType, nil)
+                
+                // Check if it's been confirmed that it should actually be a decimal and not an integer
+                if valueType == "Int" && floatProperties().contains("\(eventName).\(field.valueName)") {
+                    valueType = "Float"
+                }
+                
                 if let range = field.valueDescription.range(of: #"(`\w+`) enum"#, options: .regularExpression) {
                     let substring = String(field.valueDescription[range])
                         .replacingOccurrences(of: "`", with: "")
