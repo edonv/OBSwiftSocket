@@ -612,6 +612,8 @@ extension OBSSessionManager {
                   let port = components.port else { return nil }
             
             self.scheme = scheme
+                .replacingOccurrences(of: "obsws", with: "ws")
+            
             self.ipAddress = ipAddress
             self.port = port
             
