@@ -98,6 +98,66 @@ extension OBSSessionManager {
         return try? UserDefaults.standard.decodable(ConnectionData.self, forKey: .connectionData)
     }
     
+    public func connect(persistConnectionData: Bool = true,
+                        events: OBSEnums.EventSubscription? = nil) async throws {
+        guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
+        
+        // This just checks to see if the WSPublisher has already started its connection process.
+        // It also might already be connected.
+        guard !isWebSocketConnected else { throw Errors.alreadyConnected }
+        
+        self.connectionState = .connecting
+        
+        // START CONNECTION
+        wsPublisher.connect(with: connectionData.urlRequest!)
+        
+        // Set up listeners/publishers before starting connection.
+        // Once the connection is upgraded, the websocket server will immediately send an OpCode 0 `Hello` message to the client.
+        let hello = try await publisher(forFirstMessageOfType: OpDataTypes.Hello.self)
+            .timeout(.seconds(10), scheduler: self.publisherDataQueue, customError: { Errors.timedOutWaitingToConnect })
+            .eraseToAnyPublisher()
+            .firstValue
+        
+        // - The client listens for the `Hello` and responds with an OpCode 1 `Identify` containing all appropriate session parameters.
+        
+        //   - If there is an `authentication` field in the `messageData` object, the server requires authentication, and the steps in Creating an authentication string should be followed.
+        //   - If there is no `authentication` field, the resulting `Identify` object sent to the server does not require an authentication string.
+        //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
+        let identify = try hello.toIdentify(password: self.password, subscribeTo: events)
+        
+        do {
+            async let sendMsg: () = try sendMessage(identify)
+            
+            // - The server receives and processes the `Identify` sent by the client.
+            //   - If authentication is required and the Identify message data does not contain an authentication string, or the string is not correct, the connection is closed with WebSocketCloseCode::AuthenticationFailed
+            //   - If the client has requested an rpcVersion which the server cannot use, the connection is closed with WebSocketCloseCode::UnsupportedRpcVersion. This system allows both the server and client to have seamless backwards compatability.
+            //  - If any other parameters are malformed (invalid type, etc), the connection is closed with an appropriate close code.
+            async let identified = try publisher(forFirstMessageOfType: OpDataTypes.Identified.self)
+                .timeout(.seconds(10), scheduler: self.publisherDataQueue, customError: { Errors.timedOutWaitingToConnect })
+                .eraseToAnyPublisher()
+                .firstValue
+            
+            _ = try await (sendMsg, identified)
+            
+            if persistConnectionData {
+                self.persistConnectionData(connectionData)
+            }
+            
+            connectionState = .active
+        } catch {
+            var reason: String? = nil
+            if let err = error as? Errors {
+                reason = err.description
+            } else {
+                reason = error.localizedDescription
+            }
+            
+            wsPublisher.disconnect(reason: reason)
+            connectionState = .disconnected
+            return
+        }
+    }
+    
     /// Connects to OBS using `connectionData`.
     /// - Parameters:
     ///   - persistConnectionData: Whether `connectionData` should be persisted if connected successfully.
