@@ -102,25 +102,15 @@ public protocol OBSRequest: Codable {
 public protocol OBSRequestResponse: Codable {}
 
 extension OBSRequest {
-    /// Self's metatype.
-    var type: Self.Type {
-        Self.self
-    }
-    
     /// Self's metatype as a string.
-    var typeName: String {
+    static var typeName: String {
         String(describing: self)
             .replacingOccurrences(of: #"\(.*\)"#, with: "", options: .regularExpression)
     }
     
     /// Enum representation of its own `OBSRequest` type.
-    var typeEnum: OBSRequests.AllTypes? {
+    static var typeEnum: OBSRequests.AllTypes? {
         return OBSRequests.AllTypes.init(rawValue: typeName)
-    }
-    
-    /// Self's `ResponseType` metatype.
-    var responseType: ResponseType.Type {
-        Self.ResponseType.self
     }
     
     func toBatch(withID id: String?) -> OpDataTypes.RequestBatch.Request? {
@@ -132,11 +122,6 @@ extension OBSRequest {
 public protocol OBSEvent: Codable {}
 
 public extension OBSEvent {
-    /// Self's metatype.
-    var type: Self.Type {
-        Self.self
-    }
-    
     /// Self's metatype as a string.
     static var typeName: String {
         String(describing: self)
