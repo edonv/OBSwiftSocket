@@ -30,7 +30,7 @@ public struct UntypedMessage: Codable {
     /// error-throwing, all `try` calls in the function are optionals, allowing for throwing a custom
     /// - Throws: `UntypedMessage.Errors.unableToCastData` if unable to cast successfully.
     /// - Returns: A successfully casted instance of `data`.
-    public func messageData() throws -> OBSOpData {
+    public func messageData() throws -> any OBSOpData {
         let casted: OBSOpData?
         
         switch operation {
