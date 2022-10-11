@@ -38,6 +38,23 @@ extension WebSocketPublisher {
             return try send(msgData)
         }
     }
+    
+    func send<T: Encodable>(_ message: T,
+                            encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) async throws {
+        switch encodingMode {
+        case .json:
+            guard let json = JSONEncoder().toString(from: message) else {
+                throw CodingErrors.failedToEncodeObject(.json)
+            }
+            try await send(json)
+
+        case .msgPack:
+            guard let msgData = try? MessagePackEncoder().encode(message) else {
+                throw CodingErrors.failedToEncodeObject(.msgPack)
+            }
+            try await send(msgData)
+        }
+    }
 }
 
 // MARK: - OBS-WS Events
