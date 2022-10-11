@@ -458,7 +458,7 @@ public extension OpDataTypes.RequestBatch {
 public extension OpDataTypes.RequestBatch.Request {
     init?<R: OBSRequest>(id: String? = UUID().uuidString, request: R?) {
         guard let d = request,
-              let t = d.typeEnum else { return nil }
+              let t = R.typeEnum else { return nil }
         self.type = t
         self.id = id
         self.data = try? JSONValue.fromCodable(d)

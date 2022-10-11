@@ -268,7 +268,7 @@ extension OBSSessionManager {
     /// - Returns: A `Publisher` containing a response in the form of the associated `ResponseType`.
     public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
-        guard let type = request.typeEnum,
+        guard let type = R.typeEnum,
               let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
             return Fail(error: Errors.buildingRequest)
                 .eraseToAnyPublisher()
@@ -321,7 +321,7 @@ extension OBSSessionManager {
         return try sendRequestBatch(executionType: executionType,
                                     requests: requests.compactMap { (id, req) -> OpDataTypes.RequestBatch.Request? in
                                         return OpDataTypes.Request(
-                                            type: req.typeEnum!,
+                                            type: R.typeEnum!,
                                             id: id,
                                             request: req
                                         )?.forBatch()
@@ -421,7 +421,7 @@ extension OBSSessionManager {
     /// `OpDataTypes.Hello.self`).
     /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
-        if let pub = publisherDataQueue.sync(execute: { publishers.allMessagesOfType[type.opCode] }) {
+        if let pub = publisherDataQueue.sync(execute: { publishers.allMessagesOfType[Op.opCode] }) {
             return pub
                 .compactMap { $0 as? Op }
                 .eraseToAnyPublisher()
@@ -431,13 +431,13 @@ extension OBSSessionManager {
             .compactMap { $0 as? Op }
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
-                self?.publishers.allMessagesOfType.removeValue(forKey: type.opCode)
+                self?.publishers.allMessagesOfType.removeValue(forKey: Op.opCode)
             })
             .share()
             .eraseToAnyPublisher()
         
         publisherDataQueue.sync {
-        publishers.allMessagesOfType[type.opCode] = pub
+        publishers.allMessagesOfType[Op.opCode] = pub
             .map { $0 as OBSOpData }
             .eraseToAnyPublisher()
         }
@@ -469,7 +469,7 @@ extension OBSSessionManager {
     ///   - id: If provided, the `Publisher` will confirm that the response message has the same ID.
     /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
-        let pubID = id ?? request.typeEnum?.rawValue ?? request.typeName
+        let pubID = id ?? R.typeEnum?.rawValue ?? R.typeName
         if let pub = publisherDataQueue.sync(execute: { publishers.responsePublishers[pubID] }) {
             return pub
                 .compactMap { $0 as? R.ResponseType }
@@ -488,7 +488,7 @@ extension OBSSessionManager {
             .map(\.data)
             // This catches any requests whose associated responses are empty objects.
             .replaceNil(with: .emptyObject)
-            .tryCompactMap { try $0.toCodable(request.type.ResponseType.self) }
+            .tryCompactMap { try $0.toCodable(R.ResponseType.self) }
             .first() // Finishes the stream after allowing 1 of the correct type through
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self, pubID] _ in
