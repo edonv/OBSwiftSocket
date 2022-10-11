@@ -169,6 +169,11 @@ extension OBSSessionManager {
 // MARK: - Sending Data
 
 extension OBSSessionManager {
+    public func sendMessage<Body: OBSOpData>(_ body: Body) async throws {
+        let msg = Message<Body>(data: body)
+        try await self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
+    }
+    
     /// Sends a message wrapped around the given message body.
     /// - Parameter body: The data that should be wrapped in a `Message<Body>` and sent.
     /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
@@ -176,6 +181,23 @@ extension OBSSessionManager {
     public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
         let msg = Message<Body>(data: body)
         return try self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
+    }
+    
+    public func sendRequest<R: OBSRequest>(_ request: R) async throws -> R.ResponseType {
+        try checkForConnection()
+        
+        guard let type = R.typeEnum,
+              let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
+            throw Errors.buildingRequest
+        }
+        
+        async let sendMsg: () = try sendMessage(body)
+        async let pub = try publisher(forResponseTo: request, withID: body.id)
+            .eraseToAnyPublisher()
+            .firstValue
+        
+        let (_, resp) = try await (sendMsg, pub)
+        return resp
     }
     
     /// Sends a `Request` message wrapped around the given `OBSRequest` body.
