@@ -10,6 +10,7 @@ import Combine
 import WSPublisher
 import MessagePacker
 import CombineExtensions
+import AsyncCompatibilityKit
 
 /// Manages connection sessions with OBS.
 public final class OBSSessionManager {
