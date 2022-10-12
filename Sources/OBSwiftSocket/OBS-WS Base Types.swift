@@ -113,7 +113,7 @@ extension OBSRequest {
         return OBSRequests.AllTypes.init(rawValue: typeName)
     }
     
-    func toBatch(withID id: String?) -> OpDataTypes.RequestBatch.Request? {
+    func forBatch(withID id: String?) -> OpDataTypes.RequestBatch.Request? {
         OpDataTypes.RequestBatch.Request(id: id, request: self)
     }
 }
