@@ -271,9 +271,9 @@ extension OBSSessionManager {
         let lockedID = "\(publisherID).locked"
         let batch = try sendRequestBatch(requests: [
             OBSRequests.GetSceneItemEnabled(sceneName: sceneName, sceneItemId: sceneItemID)
-                .toBatch(withID: enabledID),
+                .forBatch(withID: enabledID),
             OBSRequests.GetSceneItemLocked(sceneName: sceneName, sceneItemId: sceneItemID)
-                .toBatch(withID: lockedID)
+                .forBatch(withID: lockedID)
         ])
         
         // Get initial enabled value
