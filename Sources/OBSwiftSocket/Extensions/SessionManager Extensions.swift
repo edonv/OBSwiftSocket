@@ -387,4 +387,3 @@ extension OBSSessionManager.PublisherStore {
         set { self[SceneItemStateKey.self] = newValue }
     }
 }
-
