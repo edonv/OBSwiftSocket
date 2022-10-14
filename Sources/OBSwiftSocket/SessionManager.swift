@@ -188,7 +188,7 @@ extension OBSSessionManager {
             //   - If there is an `authentication` field in the `messageData` object, the server requires authentication, and the steps in Creating an authentication string should be followed.
             //   - If there is no `authentication` field, the resulting `Identify` object sent to the server does not require an authentication string.
             //   - The client determines if the server's rpcVersion is supported, and if not it provides its closest supported version in Identify.
-            .tryCompactMap { try $0.toIdentify(password: self.password, subscribeTo: events) }
+            .tryMap { try $0.toIdentify(password: self.password, subscribeTo: events) }
             .tryFlatMap { Publishers.Zip(try self.sendMessage($0),
             
             // - The server receives and processes the `Identify` sent by the client.
