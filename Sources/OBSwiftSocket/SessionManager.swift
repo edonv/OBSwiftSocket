@@ -691,7 +691,7 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
         
         publisherDataQueue.sync {
-        publishers.eventGroupPublishers[eventGroupID] = mergedPub
+            publishers.eventGroupPublishers[eventGroupID] = mergedPub
         }
         return mergedPub
     }
