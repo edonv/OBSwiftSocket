@@ -245,23 +245,23 @@ extension OBSSessionManager {
 // MARK: - Sending Data
 
 extension OBSSessionManager {
-    public func sendMessage<Body: OBSOpData>(_ body: Body) async throws {
-        let msg = Message<Body>(data: body)
     /// Sends a message wrapped around the given message body via `async`.
     /// - Parameter body: The data that should be wrapped in a ``Message`` and sent.
     /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
     /// error if there isn't an active connection.
+    public func sendMessage(_ body: some OBSOpData) async throws {
+        let msg = Message(data: body)
         try await self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
     /// Sends a message wrapped around the given message body.
-    public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
-        let msg = Message<Body>(data: body)
     /// - Parameter body: The data that should be wrapped in a ``Message`` and sent.
     /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
     /// error if there isn't an active connection.
     /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) without any
     /// value, signalling that the message has been sent.
+    public func sendMessage(_ body: some OBSOpData) throws -> AnyPublisher<Void, Error> {
+        let msg = Message(data: body)
         return try self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
