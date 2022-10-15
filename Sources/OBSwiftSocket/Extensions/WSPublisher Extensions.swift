@@ -69,11 +69,3 @@ extension WebSocketPublisher {
         }
     }
 }
-
-// MARK: - OBS-WS Events
-
-//enum OBSWSEvents {
-//    case untyped(_ message: UntypedMessage)
-//    case generic(_ message: URLSessionWebSocketTask.Message)
-//    //    case cancelled
-//}
