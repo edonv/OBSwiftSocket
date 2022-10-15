@@ -4,6 +4,9 @@
 [![SwiftPM](https://img.shields.io/badge/SwiftPM-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS-lightgrey.svg)
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fedonv%2FOBSwiftSocket%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/edonv/OBSwiftSocket)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fedonv%2FOBSwiftSocket%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/edonv/OBSwiftSocket)
+
 `OBSwiftSocket` is a Swift library to be used for communication with [OBS Studio](https://obsproject.com/) via [obs-websocket](https://github.com/obsproject/obs-websocket) (v5).
 
 - obs-websocket v5 specification: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
