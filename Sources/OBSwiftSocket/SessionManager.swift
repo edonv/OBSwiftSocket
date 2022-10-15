@@ -723,12 +723,16 @@ extension OBSSessionManager {
         
         /// URL scheme to use.
         public var scheme: String
+        
         /// IP address of the `obs-websocket` server.
         public var ipAddress: String
+        
         /// Port number of the `obs-websocket` server.
         public var port: Int
+        
         /// Password for `obs-websocket` connection, if authentication is turned on.
         public var password: String?
+        
         /// Which method of encoding messages the connection should use.
         public var encodingProtocol: MessageEncoding?
         
