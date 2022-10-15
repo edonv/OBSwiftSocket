@@ -16,14 +16,15 @@ import AsyncCompatibilityKit
 public final class OBSSessionManager {
     // MARK: - Initializers
     
-    /// Initializes an `OBSSessionManager`, creating the `WebSocketPublisher`.
+    /// Initializes an ``OBSSessionManager``, creating the
+    /// [WebSocketPublisher](https://github.com/edonv/WSPublisher).
     public init() {
         self.wsPublisher = WebSocketPublisher()
         self.publishers = PublisherStore()
     }
     
-    /// Initializes an `OBSSessionManager` with `ConnectionData`.
-    /// - Parameter connectionData: The `ConnectionData` to initialize.
+    /// Initializes an ``OBSSessionManager`` with ``OBSSessionManager/ConnectionData-swift.struct``.
+    /// - Parameter connectionData: The ``OBSSessionManager/ConnectionData-swift.struct`` to initialize.
     public convenience init(connectionData: ConnectionData) {
         self.init()
         self.connectionData = connectionData
@@ -47,12 +48,13 @@ public final class OBSSessionManager {
     
     // MARK: - Public Computed Properties
     
-    /// Returns whether `wsPublisher` is connected to a WebSocket (OBS) server.
+    /// Returns whether ``OBSSessionManager/wsPublisher`` is connected to a WebSocket (OBS) server.
     public var isWebSocketConnected: Bool {
         wsPublisher.isConnected
     }
     
-    /// Returns the `password` from `connectionData` if one is set.
+    /// Returns the ``OBSSessionManager/ConnectionData-swift.struct/password`` from
+    /// ``OBSSessionManager/connectionData-swift.property`` if one is set.
     public var password: String? {
         connectionData?.password
     }
@@ -80,7 +82,8 @@ public final class OBSSessionManager {
 
 extension OBSSessionManager {
     /// Checks for an active WebSocket connection.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection.
     public func checkForConnection() throws {
         if !isWebSocketConnected {
             throw WebSocketPublisher.WSErrors.noActiveConnection
@@ -88,17 +91,26 @@ extension OBSSessionManager {
     }
     
     /// Saves connection data to `UserDefaults`.
-    /// - Parameter connectionData: The `ConnectionData` to persist.
+    /// - Parameter connectionData: The ``OBSSessionManager/ConnectionData-swift.struct`` to persist.
     public func persistConnectionData(_ connectionData: ConnectionData) {
         try? UserDefaults.standard.set(encodable: connectionData, forKey: .connectionData)
     }
     
     /// Loads persisted connection data from `UserDefaults` if it has been saved.
-    /// - Returns: Persisted `ConnectionData` if it's been persisted.
+    /// - Returns: Persisted ``OBSSessionManager/ConnectionData-swift.struct`` if it's been persisted.
     public func loadConnectionData() -> ConnectionData? {
         return try? UserDefaults.standard.decodable(ConnectionData.self, forKey: .connectionData)
     }
     
+    /// Connects to OBS using `connectionData` via `async`.
+    /// - Parameters:
+    ///   - persistConnectionData: Whether ``OBSSessionManager/connectionData-swift.property`` should be
+    ///   persisted if connected successfully.
+    ///   - events: Bit mask (`OptionSet`) of which ``OBSEvents`` to be alerted of. If `nil`, all normal
+    ///   events are subscribed to.
+    /// - Throws: Can throw ``OBSSessionManager/Errors/noConnectionData`` if there is no
+    /// ``OBSSessionManager/connectionData-swift.property`` set. Can also throw
+    /// ``OBSSessionManager/Errors/alreadyConnected`` if ``OBSSessionManager/wsPublisher`` is already running.
     public func connect(persistConnectionData: Bool = true,
                         events: OBSEnums.EventSubscription? = nil) async throws {
         guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
@@ -161,13 +173,15 @@ extension OBSSessionManager {
     
     /// Connects to OBS using `connectionData`.
     /// - Parameters:
-    ///   - persistConnectionData: Whether `connectionData` should be persisted if connected successfully.
-    ///   - events: Bit mask (`OptionSet`) of which `OBSEvents` to be alerted of. If `nil`, all normal
+    ///   - persistConnectionData: Whether ``OBSSessionManager/connectionData-swift.property`` should be
+    ///   persisted if connected successfully.
+    ///   - events: Bit mask (`OptionSet`) of which ``OBSEvents`` to be alerted of. If `nil`, all normal
     ///   events are subscribed to.
-    /// - Throws: Can throw `Errors.noConnectionData` if there is no connectionData set.
-    /// Can also throw `Errors.alreadyConnected` if `wsPublisher` is already running.
-    /// - Returns: A `Publisher` that completed upon connecting successfully. If connection process fails,
-    /// it completes with an `Error`.
+    /// - Throws: Can throw ``OBSSessionManager/Errors/noConnectionData`` if there is no
+    /// ``OBSSessionManager/connectionData-swift.property`` set. Can also throw
+    /// ``OBSSessionManager/Errors/alreadyConnected`` if ``OBSSessionManager/wsPublisher`` is already running.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that completed
+    /// upon connecting successfully. If connection process fails, it completes with an `Error`.
     public func connect(persistConnectionData: Bool = true,
                         events: OBSEnums.EventSubscription? = nil) throws -> AnyPublisher<Void, Error> {
         guard let connectionData = self.connectionData else { throw Errors.noConnectionData }
@@ -233,18 +247,30 @@ extension OBSSessionManager {
 extension OBSSessionManager {
     public func sendMessage<Body: OBSOpData>(_ body: Body) async throws {
         let msg = Message<Body>(data: body)
+    /// Sends a message wrapped around the given message body via `async`.
+    /// - Parameter body: The data that should be wrapped in a ``Message`` and sent.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection.
         try await self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
     /// Sends a message wrapped around the given message body.
-    /// - Parameter body: The data that should be wrapped in a `Message<Body>` and sent.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// - Returns: A `Publisher` without any value, signalling that the message has been sent.
     public func sendMessage<Body: OBSOpData>(_ body: Body) throws -> AnyPublisher<Void, Error> {
         let msg = Message<Body>(data: body)
+    /// - Parameter body: The data that should be wrapped in a ``Message`` and sent.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) without any
+    /// value, signalling that the message has been sent.
         return try self.wsPublisher.send(msg, encodingMode: self.encodingProtocol)
     }
     
+    /// Sends a ``OpDataTypes/Request`` message wrapped around the given ``OBSRequest`` body.
+    /// - Parameter request: The ``OBSRequest`` that in a should be sent.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
+    /// response in the form of the associated ``OBSRequest/ResponseType``.
     public func sendRequest<R: OBSRequest>(_ request: R) async throws -> R.ResponseType {
         try checkForConnection()
         
@@ -262,11 +288,12 @@ extension OBSSessionManager {
         return resp
     }
     
-    /// Sends a `Request` message wrapped around the given `OBSRequest` body.
-    /// - Parameter request: The `OBSRequest` that in a should be sent.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a response in the form of the associated `ResponseType`.
+    /// Sends a ``OpDataTypes/Request`` message wrapped around the given ``OBSRequest`` body.
+    /// - Parameter request: The ``OBSRequest`` that in a should be sent.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
+    /// response in the form of the associated ``OBSRequest/ResponseType``.
     public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
         guard let type = R.typeEnum,
@@ -281,18 +308,20 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Sends a `RequestBatch` message wrapped around the provided array of `OpDataTypes.RequestBatch.Request`s.
+    /// Sends a ``OpDataTypes/RequestBatch`` message wrapped around the provided array of ``OpDataTypes/RequestBatch/Request``s.
     ///
-    /// The Requests can be created from different types of `OBSRequest`s.
+    /// The Requests can be created from different types of ``OBSRequest``s.
     /// - Parameters:
     ///   - executionType: The method by which `obs-websocket` should execute the request batch.
-    ///   - requests: An array of `OpDataTypes.RequestBatch.Request`s. Unlike the other overload of
-    ///   `sendRequestBatch(executionType:requests:)`, these can be different types of `Request`s.
-    ///   This can most easily be done by using the `OpDataTypes.RequestBatch.Request(id:request:)`
-    ///   init for each one. This creates general, untyped `Request`s.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
+    ///   - requests: An array of ``OpDataTypes/RequestBatch/Request``s. Unlike the other overload
+    ///   (``OBSSessionManager/sendRequestBatch(executionType:requests:)-6ao82``), these can be different
+    ///   types of ``OpDataTypes/RequestBatch/Request``s. This can most easily be done by using
+    ///   ``OpDataTypes/RequestBatch/Request/init(id:request:)`` for each one. This creates general, untyped
+    ///   ``OpDataTypes/RequestBatch/Request``s.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
+    /// `Dictionary` of Request IDs to their matching ``OBSRequestResponse``s.
     public func sendRequestBatch(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                  requests: [OpDataTypes.RequestBatch.Request?]) throws -> AnyPublisher<[String: OBSRequestResponse], Error> {
         try checkForConnection()
@@ -306,17 +335,18 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Sends a `RequestBatch` message wrapped around an array of the provided `OBSRequest`s.
+    /// Sends a ``OpDataTypes/RequestBatch`` message wrapped around an array of the provided ``OBSRequest``s.
     ///
-    /// The Requests have to be the same type of `OBSRequest`.
+    /// The Requests have to be the same type of ``OBSRequest``.
     /// - Parameters:
     ///   - executionType: The method by which `obs-websocket` should execute the request batch.
-    ///   - requests: A `Dictionary` of `String`s to `OBSRequest`s. All `OBSRequest`s in `requests`
-    ///   must be of the same type. The `String`s are the IDs of the `OBSRequest`s, and are matched
+    ///   - requests: A `Dictionary` of `String`s to ``OBSRequest``s. All ``OBSRequest``s in `requests`
+    ///   must be of the same type. The `String`s are the IDs of the ``OBSRequest``s, and are matched
     ///   up with their responses in the returned `Dictionary`.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a `Dictionary` of Request IDs to their matching `OBSRequestResponse`s.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
+    /// `Dictionary` of Request IDs to their matching ``OBSRequestResponse``s.
     public func sendRequestBatch<R: OBSRequest>(executionType: OBSEnums.RequestBatchExecutionType? = .serialRealtime,
                                                 requests: [String: R]) throws -> AnyPublisher<[String: R.ResponseType], Error> {
         return try sendRequestBatch(executionType: executionType,
@@ -337,10 +367,12 @@ extension OBSSessionManager {
 // MARK: - Observable Publishers
 
 extension OBSSessionManager {
-    /// Creates a `Publisher` that publishes any message received from the server.
-    /// It contains the message in the form of an `UntypedMessage`.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// any message received from the server.
+    /// It contains the message in the form of an ``UntypedMessage``.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
     /// it is a class/reference-type, and all subscribers will use the same one via
     /// all other publishers.
     public var publisherAnyOpCode: AnyPublisher<UntypedMessage, Error> {
@@ -384,12 +416,14 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that publishes the `data` property of any message
-    /// received from the server. The `data` is mapped to an instace of the `OBSOpData` protocol.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// the ``UntypedMessage/data`` property of any message
+    /// received from the server. The ``UntypedMessage/data`` is mapped to an instace of the
+    /// ``OBSOpData`` protocol.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     public var publisherAnyOpCodeData: AnyPublisher<OBSOpData, Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.anyOpCodeData }) {
             return pub
@@ -410,17 +444,20 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that publishes all messages received from the server, filtered by the
-    /// provided `OBSOpData` type.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// all messages received from the server, filtered by the
+    /// provided ``OBSOpData`` type.
     ///
     /// It doesn't complete on its own. It continues waiting until the subscriber is closed off.
     /// 
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Parameter type: Message type for the created `Publisher` to filter (i.e.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Parameter type: Message type for the created
+    /// [Publisher](https://developer.apple.com/documentation/combine/publisher) to filter (i.e.
     /// `OpDataTypes.Hello.self`).
-    /// - Returns: A `Publisher` that publishes all `OBSOpData` messages of the provided type.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// all ``OBSOpData`` messages of the provided type.
     public func publisher<Op: OBSOpData>(forAllMessagesOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.allMessagesOfType[Op.opCode] }) {
             return pub
@@ -445,30 +482,35 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that publishes the first message received from the server of the provided
-    /// `OBSOpData` type.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// the first message received from the server of the provided
+    /// ``OBSOpData`` type.
     ///
     /// It completes after the first message passes through.
-    /// - Parameter type: Message type for the created `Publisher` to publish. (i.e.
+    /// - Parameter type: Message type for the created
+    /// [Publisher](https://developer.apple.com/documentation/combine/publisher) to publish. (i.e.
     /// `OpDataTypes.Hello.self`).
-    /// - Returns: A `Publisher` that publishes the first `OBSOpData` message of the provided type.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes the first ``OBSOpData`` message of the provided type.
     public func publisher<Op: OBSOpData>(forFirstMessageOfType type: Op.Type) -> AnyPublisher<Op, Error> {
         return publisher(forAllMessagesOfType: type)
             .first() // Finishes the stream after allowing 1 of the correct type through
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that publishes the data of the first `OBSRequestResponse` message received
-    /// from the server that matches the provided `OBSRequest` and message ID (if provided).
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// the data of the first ``OBSRequestResponse`` message received from the server that matches the
+    /// provided ``OBSRequest`` and message ID (if provided).
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     /// - Parameters:
-    ///   - request: `OBSRequest` object for which the published `OBSRequestResponse` should be
+    ///   - request: ``OBSRequest`` object for which the published ``OBSRequestResponse`` should be
     ///   associated with.
-    ///   - id: If provided, the `Publisher` will confirm that the response message has the same ID.
-    /// - Returns: A `Publisher` that publishes the `OBSRequestResponse` to the provided `OBSRequest`.
+    ///   - id: If provided, the [Publisher](https://developer.apple.com/documentation/combine/publisher)
+    ///   will confirm that the response message has the same ID.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// the ``OBSRequestResponse`` to the provided ``OBSRequest``.
     public func publisher<R: OBSRequest>(forResponseTo request: R, withID id: String? = nil) -> AnyPublisher<R.ResponseType, Error> {
         let pubID = id ?? R.typeEnum?.rawValue ?? R.typeName
         if let pub = publisherDataQueue.sync(execute: { publishers.responsePublishers[pubID] }) {
@@ -507,13 +549,15 @@ extension OBSSessionManager {
         return responsePub
     }
     
-    /// Creates a `Publisher` that publishes the `RequestBatchResponse` that matches the provided ID.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// the ``RequestBatchResponse`` that matches the provided ID.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Parameter id: ID of the `RequestBatch` whose `RequestBatchResponse` should be published.
-    /// - Returns: A `Publisher` that finishes when it receives `RequestBatchResponse` matching the provided ID.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Parameter id: ID of the ``RequestBatch`` whose ``RequestBatchResponse`` should be published.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that finishes
+    /// when it receives ``RequestBatchResponse`` matching the provided ID.
     public func publisher(forBatchResponseWithID id: String) -> AnyPublisher<OpDataTypes.RequestBatchResponse, Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.batchResponsePublishers[id] }) {
             return pub
@@ -539,19 +583,21 @@ extension OBSSessionManager {
 // MARK: - Listening for OBSEvents
 
 extension OBSSessionManager {
-    /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// received ``OBSEvent``s of the provided type.
     ///
-    /// This overload takes in an instance of `OBSEvents.AllTypes`.
+    /// This overload takes in an instance of ``OBSEvents/AllTypes``.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     /// - Parameters:
-    ///   - eventType: Type of `OBSEvent` to listen for.
+    ///   - eventType: Type of ``OBSEvent`` to listen for.
     ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided type.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// received ``OBSEvent``(s) of the provided type.
     public func listenForEvent(_ eventType: OBSEvents.AllTypes, firstOnly: Bool) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
@@ -587,19 +633,21 @@ extension OBSSessionManager {
         return finalPub
     }
     
-    /// Creates a `Publisher` that publishes received `OBSEvent`s of the provided type.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// received ``OBSEvent``s of the provided type.
     ///
-    /// This overload takes in a metatype of a `OBSEvents` type. (i.e. `OBSEvents.InputCreated.self`)
+    /// This overload takes in a metatype of a ``OBSEvent`` type. (i.e. `OBSEvents.InputCreated.self`)
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     /// - Parameters:
-    ///   - eventType: Type of `OBSEvent` to listen for.
+    ///   - eventType: Type of ``OBSEvent`` to listen for.
     ///   - firstOnly: Whether to finish after receiving the first event or to listen for repeated occurrences.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided type.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// received ``OBSEvent``(s) of the provided type.
     public func listenForEvent<E: OBSEvent>(_ eventType: E.Type, firstOnly: Bool) throws -> AnyPublisher<E, Error> {
         guard let type = eventType.typeEnum else { throw Errors.failedEventTypeConversion(eventType.self) }
         return try listenForEvent(type, firstOnly: firstOnly)
@@ -607,18 +655,21 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that publishes all received `OBSEvent`s of the provided types.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that publishes
+    /// all received ``OBSEvent``s of the provided types.
     ///
-    /// Doesn't complete on its own. It continues listening for any instances of the provided `OBSEvent` types
-    ///  until the subscriber is closed off.
+    /// Doesn't complete on its own. It continues listening for any instances of the provided ``OBSEvent`` types
+    /// until the subscriber is closed off.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Parameter eventTypes: Types of `OBSEvents.AllTypes` enums to listen for. (i.e. `OBSEvents.AllTypes.InputCreated`).
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing received `OBSEvent`(s) of the provided types.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This means
+    /// it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Parameter eventTypes: Types of ``OBSEvents/AllTypes`` enums to listen for. (i.e.
+    /// ``OBSEvents/AllTypes/InputCreated``).
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// received ``OBSEvent``(s) of the provided types.
     public func listenForEvents(_ eventTypes: OBSEvents.AllTypes...) throws -> AnyPublisher<OBSEvent, Error> {
         try checkForConnection()
         
@@ -681,12 +732,12 @@ extension OBSSessionManager {
         /// Which method of encoding messages the connection should use.
         public var encodingProtocol: MessageEncoding?
         
-        /// Initializes connection data from a `URL`.
+        /// Initializes connection data from a [URL](https://developer.apple.com/documentation/foundation/url).
         public init?(fromUrl url: URL, encodingProtocol: MessageEncoding? = nil) {
             self.init(fromUrlRequest: URLRequest(url: url), encodingProtocol: encodingProtocol)
         }
         
-        /// Initializes connection data from a `URLRequest`.
+        /// Initializes connection data from a [URLRequest](https://developer.apple.com/documentation/foundation/urlrequest).
         public init?(fromUrlRequest request: URLRequest,
                      encodingProtocol: MessageEncoding? = nil) {
             guard let url = request.url,
@@ -712,7 +763,7 @@ extension OBSSessionManager {
             }
         }
         
-        /// An assembled `String` of the full URL.
+        /// An assembled `String` of the full [URL](https://developer.apple.com/documentation/foundation/url).
         public var urlString: String {
             var str = "\(scheme)://\(ipAddress):\(port)"
             if let pass = password, !pass.isEmpty {
@@ -721,12 +772,15 @@ extension OBSSessionManager {
             return str
         }
         
-        /// An `URL` initialized from `urlString`.
+        /// A [URL](https://developer.apple.com/documentation/foundation/url) initialized
+        /// from ``OBSSessionManager/ConnectionData-swift.struct/urlString``.
         public var url: URL? {
             return URL(string: urlString)
         }
         
-        /// An `URLRequest` initialized from `url` and `encodingProtocol`, if not `nil`.
+        /// A [URLRequest](https://developer.apple.com/documentation/foundation/urlrequest) initialized
+        /// from ``OBSSessionManager/ConnectionData-swift.struct/url`` and
+        /// ``OBSSessionManager/ConnectionData-swift.struct/encodingProtocol``, if not `nil`.
         public var urlRequest: URLRequest? {
             guard let url = self.url else { return nil }
             var req = URLRequest(url: url)
@@ -750,13 +804,14 @@ extension OBSSessionManager {
 // MARK: - Errors
 
 extension OBSSessionManager {
-    /// Errors pertaining to `OBSSessionManager`.
+    /// Errors pertaining to ``OBSSessionManager``.
     public enum Errors: Error, CustomStringConvertible {
-        /// Thrown when the session is instructed to connect without `ConnectionData`.
+        /// Thrown when the session is instructed to connect without ``OBSSessionManager/ConnectionData-swift.struct``.
         case noConnectionData
         
-        /// Thrown from `connect(persistConnectionData:events:)` if `wsPublisher` is already
-        /// connected to OBS.
+        /// Thrown from ``OBSSessionManager/connect(persistConnectionData:events:)-25yo0`` or
+        /// ``OBSSessionManager/connect(persistConnectionData:events:)-12kz8`` if
+        /// ``OBSSessionManager/wsPublisher`` is already connected to OBS.
         case alreadyConnected
         
         /// Thrown when a connection has been closed.
@@ -765,18 +820,19 @@ extension OBSSessionManager {
         /// Thrown during authentication process when OBS requires a password, but the user didn't supply one.
         case missingPasswordWhereRequired
         
-        /// Thrown when an `OBSRequestResponse` is received with a status that is
-        /// not `OBSEnums.RequestStatus.success` (`100`).
+        /// Thrown when an ``OBSRequestResponse`` is received with a status that is
+        /// not ``OBSEnums/RequestStatus/success`` (`100`).
         case requestResponseNotSuccess(OpDataTypes.RequestResponse.Status)
         
-        /// Thrown when an error occurs while building an `OBSRequest` message body.
+        /// Thrown when an error occurs while building an ``OBSRequest`` message body.
         case buildingRequest
         
-        /// Thrown from `listenForEvent(_:firstOnly:)` when an `OBSEvent` type is unsuccessfully converted to
-        /// an `OBSEvent.AllTypes` case.
+        /// Thrown from ``OBSSessionManager/listenForEvent(_:firstOnly:)-1dso5`` when an ``OBSEvent`` type
+        /// is unsuccessfully converted to an ``OBSEvents/AllTypes`` case.
         case failedEventTypeConversion(OBSEvent.Type)
         
-        /// Thrown from `connect(persistConnectionData:events:)` if too much time has passed
+        /// Thrown from ``OBSSessionManager/connect(persistConnectionData:events:)-25yo0`` or
+        /// ``OBSSessionManager/connect(persistConnectionData:events:)-12kz8`` if too much time has passed
         /// waiting for the connection process.
         case timedOutWaitingToConnect
         

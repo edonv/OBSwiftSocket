@@ -18,11 +18,13 @@ enum CodingErrors: Error {
 }
 
 extension JSONDecoder {
-    /// Decodes a JSON `String` to the provided `Decodable` type.
+    /// Decodes a JSON `String` to the provided
+    /// [Decodable](https://developer.apple.com/documentation/swift/decodable) type.
     /// - Parameters:
     ///   - type: The type to decode to.
     ///   - string: A JSON `String`.
-    /// - Throws: A `DecodingError` if decoding fails.
+    /// - Throws: A [DecodingError](https://developer.apple.com/documentation/swift/decodingerror) if
+    /// decoding fails.
     /// - Returns: Decoded object.
     func decode<T: Decodable>(_ type: T.Type, from string: String) throws -> T? {
         guard let data = string.data(using: .utf8) else { return nil }
@@ -32,7 +34,8 @@ extension JSONDecoder {
 }
 
 extension JSONEncoder {
-    /// Encodes an `Encodable` object to a JSON `String`.
+    /// Encodes an [Encodable](https://developer.apple.com/documentation/swift/encodable) object to
+    /// a JSON `String`.
     /// - Parameter object: `Encodable` object to encode.
     /// - Returns: A JSON `String`.
     func toString<T: Encodable>(from object: T) -> String? {
@@ -102,30 +105,36 @@ extension UserDefaults.Key {
 }
 
 public extension UserDefaults {
-    /// Sets the `Encodable` value of the specified default key.
+    /// Sets the [Encodable](https://developer.apple.com/documentation/swift/encodable) value of the
+    /// specified default key.
     /// - Parameters:
     ///   - encodable: The `Encodable` object to store in the defaults database.
     ///   - deafultName: The key with which to associate the value.
-    /// - Throws: An `EncodingError` if encoding fails.
+    /// - Throws: An [EncodingError](https://developer.apple.com/documentation/swift/encodingerror) if
+    /// encoding fails.
     func set<T: Encodable>(encodable: T, forKey deafultName: String) throws {
         let data = try JSONEncoder().encode(encodable)
         set(data, forKey: deafultName)
     }
     
-    /// Sets the `Encodable` value of the specified default key.
+    /// Sets the [Encodable](https://developer.apple.com/documentation/swift/encodable) value of the
+    /// specified default key.
     /// - Parameters:
     ///   - encodable: The `Encodable` object to store in the defaults database.
     ///   - key: A static `Key` with which to associate the value.
-    /// - Throws: An `EncodingError` if encoding fails.
+    /// - Throws: An [EncodingError](https://developer.apple.com/documentation/swift/encodingerror) if
+    /// encoding fails.
     func set<T: Encodable>(encodable: T, forKey key: Key) throws {
         try set(encodable: encodable, forKey: key.rawValue)
     }
     
-    /// Returns the `Decodable` object associated with the specified key, if one exists.
+    /// Returns the [Decodable](https://developer.apple.com/documentation/swift/decodable) object
+    /// associated with the specified key, if one exists.
     /// - Parameters:
     ///   - type: The `Decodable` type that the stored object should be cast to.
     ///   - deafultName: A key in the current user‘s defaults database.
-    /// - Throws: A `DecodingError` if decoding fails.
+    /// - Throws: A [DecodingError](https://developer.apple.com/documentation/swift/decodingerror) if
+    /// decoding fails.
     func decodable<T: Decodable>(_ type: T.Type, forKey deafultName: String) throws -> T? {
         guard let data = object(forKey: deafultName) as? Data else { return nil }
         let obj = try JSONDecoder().decode(T.self, from: data)
@@ -136,7 +145,8 @@ public extension UserDefaults {
     /// - Parameters:
     ///   - type: The `Decodable` type that the stored object should be cast to.
     ///   - key: A static `Key` to look at for a value.
-    /// - Throws: A `DecodingError` if decoding fails.
+    /// - Throws: A [DecodingError](https://developer.apple.com/documentation/swift/decodingerror) if
+    /// decoding fails.
     func decodable<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T? {
         return try decodable(type, forKey: key.rawValue)
     }

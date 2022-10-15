@@ -13,13 +13,16 @@ import MessagePacker
 // MARK: - Send Encodable Objects
 
 extension WebSocketPublisher {
-    /// Sends an `Encodable` message to the connected WebSocket server/host.
+    /// Sends an [Encodable](https://developer.apple.com/documentation/swift/encodable) message to the
+    /// connected WebSocket server/host.
     /// - Parameters:
     ///   - message: The `Encodable` message to send.
-    ///   - encodingMode: The `OBSSessionManager.ConnectionData.MessageEncoding` to be used
+    ///   - encodingMode: The ``OBSSessionManager/ConnectionData-swift.struct/MessageEncoding`` to be used
     ///   for sending `Encodable` messages over WebSocket.
-    /// - Throws: `WSErrors.noActiveConnection` if there isn't an active connection.
-    /// - Returns: A `Publisher` without any value, signalling the message has been sent.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) without
+    /// any value, signalling the message has been sent.
     func send<T: Encodable>(_ message: T,
                             encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) throws -> AnyPublisher<Void, Error> {
         switch encodingMode {
@@ -39,6 +42,16 @@ extension WebSocketPublisher {
         }
     }
     
+    /// Sends an [Encodable](https://developer.apple.com/documentation/swift/encodable) message to the
+    /// connected WebSocket server/host via `async`.
+    /// - Parameters:
+    ///   - message: The `Encodable` message to send.
+    ///   - encodingMode: The ``OBSSessionManager/ConnectionData-swift.struct/MessageEncoding`` to be used
+    ///   for sending `Encodable` messages over WebSocket.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) without
+    /// any value, signalling the message has been sent.
     func send<T: Encodable>(_ message: T,
                             encodingMode: OBSSessionManager.ConnectionData.MessageEncoding) async throws {
         switch encodingMode {

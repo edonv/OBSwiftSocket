@@ -22,14 +22,16 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
     }
     
-    /// Creates a `Publisher` that returns the state of Studio Mode every time it changes.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// the state of Studio Mode every time it changes.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a `Bool` that re-publishes every time the state of Studio Mode changes.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) that
+    /// re-publishes every time the state of Studio Mode changes.
     public func studioModeStatePublisher() throws -> AnyPublisher<Bool, Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.studioModeState }) {
             return pub
@@ -58,16 +60,17 @@ extension OBSSessionManager {
     /// A pair of a program and preview scene names. If `previewScene` is `nil`, OBS is in Studio Mode.
     public typealias SceneNamePair = (programScene: String, previewScene: String?)
     
-    /// Creates a `Publisher` that returns `SceneNamePair`s every time the current program and preview
-    /// scenes change.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// a ``OBSSessionManager/SceneNamePair`` every time either the current program or preview scene change.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a `SceneNamePair` that re-publishes every time the current
-    /// program and preview scenes change.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// a ``OBSSessionManager/SceneNamePair`` that re-publishes every time either the current program or
+    /// preview scenes change.
     public func currentSceneNamePairPublisher() throws -> AnyPublisher<SceneNamePair, Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.currentSceneNamePair }) {
             return pub
@@ -127,14 +130,16 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that returns the current scene list, updating with any changes.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// the current scene list, updating with any changes.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing the scene list that re-publishes every time the list changes.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// the scene list that re-publishes every time the list changes.
     public func sceneListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.Scene], Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.sceneList }) {
             return pub
@@ -163,15 +168,17 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that returns the provided scene's list of scene items, updating with any changes.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// the provided scene's list of scene items, updating with any changes.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     /// - Parameter sceneName: Name of the scene to get the scene list for.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list changes.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// the scene item list that re-publishes every time the list changes.
     public func sceneItemListPublisher(forScene sceneName: String) throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.sceneItemList[sceneName] }) {
             return pub
@@ -197,6 +204,12 @@ extension OBSSessionManager {
         
         let pub = Publishers.Merge(getCurrentSceneItemList, eventListener)
             .tryMap { try $0.typedSceneItems() }
+            .zip(try listenForEvent(OBSEvents.InputNameChanged.self, firstOnly: false)) { sceneItems, event -> [OBSRequests.Subtypes.SceneItem] in
+                guard let i = sceneItems.firstIndex(where: { $0.sourceName == event.oldInputName }) else { return sceneItems }
+                var list = sceneItems
+                list[i].sourceName = event.inputName
+                return list
+            }
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
                 self?.publishers.sceneItemList.removeValue(forKey: sceneName)
@@ -211,17 +224,21 @@ extension OBSSessionManager {
         return pub
     }
     
-    /// Creates a `Publisher` that returns the active scene's list of scene items, updating with any changes.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// the active scene's list of scene items, updating with any changes.
     ///
-    /// If the active scene changes, the returned `Publisher` will re-publish with the newly-active scene's list.
+    /// If the active scene changes, the returned
+    /// [Publisher](https://developer.apple.com/documentation/combine/publisher)
+    /// will re-publish with the newly-active scene's list.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing the scene item list that re-publishes every time the list or
-    /// active scene changes. This includes if Studio Mode is enabled and the preview scene changes.
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// the scene item list that re-publishes every time the list or active scene changes. This includes
+    /// if the Studio Mode state is changed and the "focused" scene changes.
     public func activeSceneItemListPublisher() throws -> AnyPublisher<[OBSRequests.Subtypes.SceneItem], Error> {
         if let pub = publisherDataQueue.sync(execute: { publishers.activeSceneItemList }) {
             return pub
@@ -248,19 +265,20 @@ extension OBSSessionManager {
     /// A tuple pairing a scene item's enabled and locked statuses.
     public typealias SceneItemStatePair = (isEnabled: Bool, isLocked: Bool)
     
-    /// Creates a `Publisher` that returns `SceneItemStatePair`s every time the provided scene item's
-    /// state changes.
+    /// Creates a [Publisher](https://developer.apple.com/documentation/combine/publisher) that returns
+    /// ``OBSSessionManager/SceneItemStatePair``s every time the provided scene item's state changes.
     ///
-    /// This is a stored property that is of a `Publishers.Share` type. This means
-    /// it is a class/reference-type, and all subscribers will use the same one via
-    /// all other publishers. 
+    /// This is a stored property that is of a
+    /// [Publishers.Share](https://developer.apple.com/documentation/combine/publishers/share) type. This
+    /// means it is a class/reference-type, and all subscribers will use the same one via all other publishers.
     /// - Parameters:
     ///   - sceneName: Name of the scene that the scene item is in.
     ///   - sceneItemId: Unique ID of the scene item.
-    /// - Throws: `WebSocketPublisher.WSErrors.noActiveConnection` error if there isn't an active connection.
-    /// Thrown by `checkForConnection()`.
-    /// - Returns: A `Publisher` containing a `SceneItemStatePair` for the requested scene item that
-    /// re-publishes every time its state changes.
+    /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
+    /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
+    /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing
+    /// a ``OBSSessionManager/SceneItemStatePair`` for the requested scene item that re-publishes every time
+    /// its state changes.
     public func sceneItemStatePublisher(inScene sceneName: String, withID sceneItemID: Int) throws -> AnyPublisher<SceneItemStatePair, Error> {
         let publisherID = "\(sceneName).\(sceneItemID)"
         if let pub = publisherDataQueue.sync(execute: { publishers.sceneItemState[publisherID] }) {
