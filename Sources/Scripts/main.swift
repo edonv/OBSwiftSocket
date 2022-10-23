@@ -11,6 +11,8 @@ import JSONValue
 generateProtocol()
 
 class OBSWSProtocol: Codable {
+    static var shared: OBSWSProtocol? = nil
+    
     var enums: [OBSEnum]
     var requests: [OBSRequest]
     var events: [OBSEvent]
@@ -44,6 +46,58 @@ func globalFormatCategoryName(_ category: String) -> String {
         .map { String($0).prefix(1).uppercased() + String($0).dropFirst() }
         .joined()
         .replacingOccurrences(of: "Ui", with: "UI")
+}
+
+func getExplicitType(presetType: String, _ category: MiscExplicitOverrwrites, propertyPath: [String]) -> String {
+    return MiscExplicitOverrwrites.explicitTypes[category]?[propertyPath.joined(separator: ".")] ?? presetType
+}
+
+func findReplaceLinkedSymbolsInDescs(_ description: String, category: MiscExplicitOverrwrites, symbolPath: [String]) -> String {
+    guard let fullProtocol = OBSWSProtocol.shared else { return description }
+    var desc = description
+    
+    let pattern = #"`(?<name>[A-z]\w+?)`"#
+    let regex = try! NSRegularExpression(pattern: pattern, options: [])
+    var matches = [String]()
+    regex.enumerateMatches(in: desc,
+                           range: NSRange(description.startIndex..<description.endIndex,
+                                          in: description)) { match, _, stop in
+        guard let fullRange = match?.range(withName: "name"),
+              fullRange.location != NSNotFound,
+              let matchRange = Range(fullRange, in: description) else { return }
+        
+        matches.append(String(description[matchRange]))
+    }
+    
+    for match in matches {
+        var fullPath = symbolPath
+        fullPath.append(match)
+        print("Path: ", fullPath)
+        print("Match: ", match)
+        print("")
+        
+        // TODO: In here, search in external JSON file that has keys (like `requestType.{key used in description}`) to the explicit path that should replace it
+        if let linkStr = MiscExplicitOverrwrites.links[category]?[fullPath.joined(separator: ".")] {
+            desc = desc
+                .replacingOccurrences(of: "`\(match)`", with: "```\(linkStr)```")
+        } else if fullProtocol.requests.map(\.requestType).contains(match) {
+            desc = desc
+                .replacingOccurrences(of: "`\(match)`", with: "```OBSRequests/\(match)```")
+        } else if fullProtocol.events.map(\.eventType).contains(match) {
+            desc = desc
+                .replacingOccurrences(of: "`\(match)`", with: "```OBSEvents/\(match)```")
+        } else if fullProtocol.enums.map(\.enumType).contains(match) {
+            desc = desc
+                .replacingOccurrences(of: match, with: "```OBSEnums/\(match)```")
+                .replacingOccurrences(of: "WebSocket", with: "")
+                .replacingOccurrences(of: "Obs", with: "")
+                .replacingOccurrences(of: "Ui", with: "UI")
+        }
+        
+        print(desc)
+    }
+    
+    return desc
 }
 
 struct OBSRequest: Codable, Hashable {
@@ -97,12 +151,16 @@ struct OBSRequest: Codable, Hashable {
             initBody.append("self.\(field.valueName) = \(field.valueName)")
             
             return [
-                field.valueDescription
+                findReplaceLinkedSymbolsInDescs(field.valueDescription,
+                                                category: .requests,
+                                                symbolPath: [
+                                                    self.requestType, field.valueName
+                                                ])
                     .split(separator: "\n")
                     .map { createTabs(2) + "/// \(String($0))" }
                     .joined(separator: "\n"),
                 
-                createTabs(2) + "public var \(field.valueName): \(valueType)"
+                createTabs(2) + "public var \(field.valueName): \(getExplicitType(presetType: valueType, .requests, propertyPath: [self.requestType, field.valueName]))"
             ].joined(separator: "\n")
         }.joined(separator: "\n\n")
         
@@ -142,6 +200,7 @@ struct OBSRequest: Codable, Hashable {
             .joined(separator: "\n")
             
             return "\n\n" + createTabs(2) +
+                // DON'T ADD sub.fieldDescription because that would be the description for the field that the subtype is built on
                 """
                 public struct \(sub.valueName.prefix(1).uppercased() + sub.valueName.dropFirst()): Codable {
                 """
@@ -154,12 +213,16 @@ struct OBSRequest: Codable, Hashable {
                     }
                     
                     return [
-                        field.valueDescription
+                        findReplaceLinkedSymbolsInDescs(field.valueDescription,
+                                                        category: .requests,
+                                                        symbolPath: [
+                                                            self.requestType, field.valueName
+                                                        ])
                             .split(separator: "\n")
                             .map { createTabs(3) + "/// \(String($0))" }
                             .joined(separator: "\n"),
                         
-                        createTabs(3) + "public var \(field.valueName): \(valueType)"
+                        createTabs(3) + "public var \(field.valueName): \(getExplicitType(presetType: valueType, .requests, propertyPath: [self.requestType, field.valueName]))"
                     ].joined(separator: "\n")
                 }.joined(separator: "\n\n")
                 + "\n\n" + createTabs(3)
@@ -346,16 +409,12 @@ func generateEnums(_ enums: [OBSEnum]) -> String {
                     .replacingOccurrences(of: "OBS_", with: "")
                 
                 // split by capital letters
+                // this is to take out any occurances of any words from the enum name from the enum cases
+                // not sure i actually like this anymore. going to comment out for now
                 for substring in splitByCapitals(enumName) {
                     if let range = identifier.lowercased().range(of: substring.lowercased()) {
                         identifier.removeSubrange(range)
-//                        identifier = identifier
-//                            .replacingOccurrences(of: "__", with: "_")
-                        
-//                        while identifier.prefix(1) == "_" {
                         identifier = String(identifier.drop(while: { $0 == "_" }))
-//                            identifier = String(identifier.dropFirst())
-//                        }
                     }
                 }
                 
@@ -385,11 +444,14 @@ func generateEnums(_ enums: [OBSEnum]) -> String {
                     }
                 }()
                 
-                
                 var string = [
                     // /// An input has been created.
-                    c.description
-                        .replacingOccurrences(of: "Note:", with: "- Note:")
+                    findReplaceLinkedSymbolsInDescs(c.description
+                        .replacingOccurrences(of: "Note:", with: "- Note:"),
+                                                    category: .enums,
+                                                    symbolPath: [
+                                                        enumName, camelized(c.enumIdentifier)
+                                                    ])
                         .split(separator: "\n")
                         .map { String($0) },
                     [
@@ -425,11 +487,21 @@ func generateEnums(_ enums: [OBSEnum]) -> String {
         .replacingOccurrences(of: "``", with: "`")
     }.joined(separator: "\n\n")
     
+    var addlEnums = ""
+    if let addlEnumsStr = MiscExplicitOverrwrites.addlTypes[.enums] {
+        addlEnums = """
+                    \(addlEnumsStr
+                        .split(separator: "\n")
+                        .map { createTabs(1) + $0 }
+                        .joined(separator: "\n"))
+                    """
+    }
+    
     return
         """
         public enum OBSEnums {
         \(fullStr)
-        }
+        \("\n" + addlEnums + "\n")}
         """
 }
 
@@ -442,7 +514,9 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
         
         var finalStr =
             """
-            \(r.description
+            \(findReplaceLinkedSymbolsInDescs(r.description,
+                                              category: .requests,
+                                              symbolPath: [reqName])
                 // .replacingOccurrences(of: "\n\n", with: "\n")
                 .replacingOccurrences(of: "Note:", with: "- Note:")
                 .split(separator: "\n")
@@ -509,15 +583,17 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                         fieldsToSkip[r, default: []].append(field)
                     }
                     
-                    initParams.append("\(field.valueName): \(valueType)")
+                    initParams.append("\(field.valueName): \(getExplicitType(presetType: valueType, .requests, propertyPath: [reqName, field.valueName]))")
                     initBody.append("self.\(field.valueName) = \(field.valueName)")
                     
                     return [
-                        field.valueDescription
+                        findReplaceLinkedSymbolsInDescs(field.valueDescription
                             .replacingOccurrences(of: "TODO", with: "- ToDo")
                             .replacingOccurrences(of: "Note", with: "- Note")
                             .replacingOccurrences(of: "**Very important note**", with: "- Important")
-                            .replacingOccurrences(of: "\n-", with: "-")
+                            .replacingOccurrences(of: "\n-", with: "-"),
+                                                        category: .requests,
+                                                        symbolPath: [reqName, field.valueName])
 //                            .replacingOccurrences(of: "null", with: "`nil`")
 //                            .replacingOccurrences(of: "``", with: "`")
                             .split(separator: "\n")
@@ -528,11 +604,19 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                             ? "/// - Requires: Value Restrictions - `\(field.valueRestrictions!)`"
                             : nil,
                         
-                        field.valueOptionalBehavior != nil
-                            ? "/// - Important: \(optionalTerm) Behavior - `\(field.valueOptionalBehavior!)`"
-                            : nil,
+                        { () -> String? in
+                            guard let optionalBehaviorConst = field.valueOptionalBehavior else { return nil }
+                            var optionalBehavior = optionalBehaviorConst
+                            
+                            let pattern = #"(?<number>\-?\d+)"#
+                            if let range = optionalBehavior.range(of: pattern, options: .regularExpression) {
+                                optionalBehavior = optionalBehavior.replacingOccurrences(of: String(optionalBehavior[range]), with: "`\(String(optionalBehavior[range]))`")
+                            }
+                            
+                            return "/// - Important: \(optionalTerm) Behavior - \(findReplaceLinkedSymbolsInDescs(optionalBehavior, category: .requests, symbolPath: [reqName, field.valueName]))"
+                        }(),
                         
-                        "public var \(field.valueName): \(valueType)",
+                        "public var \(field.valueName): \(getExplicitType(presetType: valueType, .requests, propertyPath: [reqName, field.valueName]))",
                     ]
                     .compactMap { $0 }
                     .map { createTabs(2) + $0 }
@@ -572,13 +656,17 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                         ? "?" : ""
                     
                     return [
-                        field.valueDescription
+                        findReplaceLinkedSymbolsInDescs(field.valueDescription,
+                                                        category: .requests,
+                                                        symbolPath: [
+                                                            reqName, "Response", field.valueName
+                                                        ])
                             .replacingOccurrences(of: "null", with: "`nil`")
                             .split(separator: "\n")
                             .map { createTabs(3) + "/// \(String($0))" }
                             .joined(separator: "\n"),
                         
-                        createTabs(3) + "public var \(field.valueName): \(valueType)" + optional
+                        createTabs(3) + "public var \(field.valueName): \(getExplicitType(presetType: valueType, .requests, propertyPath: [reqName, "Response", field.valueName]))" + optional
                     ].joined(separator: "\n")
                 }.joined(separator: "\n\n"))
                 \(createTabs(2))}
@@ -668,17 +756,17 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                     
                     // Needs to be marked as Excludable type (or set to .excluded)
                     if field.valueOptional && field.valueDescription.contains("null") {
-                        decodableStr += "self.\(field.valueName) = try container.decodeIfPresent(Excludable<\(valueType)>.self, forKey: .\(field.valueName)) ?? .excluded"
+                        decodableStr += "self.\(field.valueName) = try container.decodeIfPresent(Excludable<\(getExplicitType(presetType: valueType, .requests, propertyPath: [r.requestType, field.valueName]))>.self, forKey: .\(field.valueName)) ?? .excluded"
                     } else { // if present
                         // self.display = try container.decodeIfPresent(Int?.self, forKey: .display)
-                        decodableStr += "self.\(field.valueName) = try container.decodeIfPresent(\(valueType).self, forKey: .\(field.valueName))"
+                        decodableStr += "self.\(field.valueName) = try container.decodeIfPresent(\(getExplicitType(presetType: valueType, .requests, propertyPath: [r.requestType, field.valueName])).self, forKey: .\(field.valueName))"
                     }
                 } else {
                     // try container.encode(show_cursor, forKey: .show_cursor)
                     encodableStr += "try container.encode(\(field.valueName), forKey: .\(field.valueName))"
                     
                     // self.show_cursor = try container.decode(Bool.self, forKey: .show_cursor)
-                    decodableStr += "self.\(field.valueName) = try container.decode(\(valueType).self, forKey: .\(field.valueName))"
+                    decodableStr += "self.\(field.valueName) = try container.decode(\(getExplicitType(presetType: valueType, .requests, propertyPath: [r.requestType, field.valueName])).self, forKey: .\(field.valueName))"
                 }
             }
             
@@ -700,6 +788,18 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 """
         }
     }
+        
+    var addlReqs = ""
+    if let addlReqsStr = MiscExplicitOverrwrites.addlTypes[.requests] {
+        addlReqs = """
+                   
+                   \(addlReqsStr
+                        .split(separator: "\n")
+                        .map { createTabs(1) + $0 }
+                        .joined(separator: "\n"))
+                   
+                   """
+    }
     
     return
         """
@@ -709,7 +809,7 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
             public typealias FailedBatchReqResponse = OpDataTypes.RequestBatchResponse.Response
 
         \(fullStr)
-        
+        \(addlReqs)
         \(allTypes)
         }\(codableFuncs)
         """
@@ -721,7 +821,11 @@ func generateEvents(_ events: [OBSEvent]) -> String {
         
         var finalStr =
             """
-            \(ev.description
+            \(findReplaceLinkedSymbolsInDescs(ev.description,
+                                              category: .events,
+                                              symbolPath: [
+                                                eventName
+                                              ])
                 .replacingOccurrences(of: "Note:", with: "- Note:")
                 // .replacingOccurrences(of: "\n\n", with: "\n")
                 .split(separator: "\n")
@@ -757,11 +861,13 @@ func generateEvents(_ events: [OBSEvent]) -> String {
                     valueType = "OBSEnums." + substring
                 }
                 
-                initParams.append("\(field.valueName): \(valueType)")
+                initParams.append("\(field.valueName): \(getExplicitType(presetType: valueType, .events, propertyPath: [eventName, field.valueName]))")
                 initBody.append("self.\(field.valueName) = \(field.valueName)")
                 
                 return [
-                    field.valueDescription
+                    findReplaceLinkedSymbolsInDescs(field.valueDescription,
+                                                    category: .events,
+                                                    symbolPath: [eventName, field.valueName])
                         .replacingOccurrences(of: "TODO", with: "- ToDo")
                         .replacingOccurrences(of: "Note", with: "- Note")
                         .replacingOccurrences(of: "**Very important note**", with: "- Important")
@@ -769,7 +875,7 @@ func generateEvents(_ events: [OBSEvent]) -> String {
                         .map { "/// \(String($0))" }
                         .joined(separator: "\n"),
                     
-                    "public var \(field.valueName): \(valueType)",
+                    "public var \(field.valueName): \(getExplicitType(presetType: valueType, .events, propertyPath: [eventName, field.valueName]))",
                 ]
                 .map { createTabs(2) + $0 }
                 .joined(separator: "\n")
@@ -820,11 +926,23 @@ func generateEvents(_ events: [OBSEvent]) -> String {
         .map { createTabs(1) + $0 }
         .joined(separator: "\n")
     
+    var addlEvents = ""
+    if let addlEventsStr = MiscExplicitOverrwrites.addlTypes[.events] {
+        addlEvents = """
+                     
+                     \(addlEventsStr
+                         .split(separator: "\n")
+                         .map { createTabs(1) + $0 }
+                         .joined(separator: "\n"))
+                     
+                     """
+    }
+
     return
         """
         public enum OBSEvents {
         \(fullStr)
-        
+        \(addlEvents)
         \(allTypes)
         }
         """
@@ -842,7 +960,8 @@ func generateProtocol() {
     
     let decoder = JSONDecoder()
     let fullProtocol = try! decoder.decode(OBSWSProtocol.self, from: data)
-
+    OBSWSProtocol.shared = fullProtocol
+    
     for i in 0..<fullProtocol.requests.count {
         fullProtocol.requests[i].formatCategoryName()
     }
@@ -853,7 +972,7 @@ func generateProtocol() {
     let source =
         """
         //
-        //  Protocol.swift
+        //  Types.swift
         //  OBSwiftSocket
         //
         //  Generated by script on \(dateFormatter.string(from: Date())).
@@ -865,15 +984,32 @@ func generateProtocol() {
 
         // MARK: - Enums
 
-        \(generateEnums(fullProtocol.enums))
+        \(generateEnums(fullProtocol.enums)
+            .replacingOccurrences(of: "True", with: "true")
+            .replacingOccurrences(of: "False", with: "false")
+            .replacingOccurrences(of: "`true`", with: "true")
+            .replacingOccurrences(of: "`false`", with: "false")
+            .replacingOccurrences(of: "true", with: "`true`")
+            .replacingOccurrences(of: "false", with: "`false`"))
 
         // MARK: - Requests
 
-        \(generateRequests(fullProtocol.requests))
+        \(generateRequests(fullProtocol.requests)
+            .replacingOccurrences(of: "True", with: "true")
+            .replacingOccurrences(of: "False", with: "false")
+            .replacingOccurrences(of: "`true`", with: "true")
+            .replacingOccurrences(of: "`false`", with: "false")
+            .replacingOccurrences(of: "true", with: "`true`")
+            .replacingOccurrences(of: "false", with: "`false`"))
 
         // MARK: - Events
         
-        \(generateEvents(fullProtocol.events))
+        \(generateEvents(fullProtocol.events)            .replacingOccurrences(of: "True", with: "true")
+            .replacingOccurrences(of: "False", with: "false")
+            .replacingOccurrences(of: "`true`", with: "true")
+            .replacingOccurrences(of: "`false`", with: "false")
+            .replacingOccurrences(of: "true", with: "`true`")
+            .replacingOccurrences(of: "false", with: "`false`"))
 
         """
     
