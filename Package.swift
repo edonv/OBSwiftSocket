@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.4
 
 import PackageDescription
 
@@ -15,15 +15,15 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/edonv/JSONValue.git",
-                 branch: "main"),
+                 .branch("main")),
         .package(url: "https://github.com/edonv/WSPublisher.git",
-                 branch: "main"),
+                 .branch("main")),
         .package(url: "https://github.com/hirotakan/MessagePacker.git",
                  .upToNextMajor(from: "0.0.0")),
         .package(url: "https://github.com/edonv/CommonExtensions.git",
-                 branch: "main"),
+                 .branch("main")),
         .package(url: "https://github.com/edonv/AsyncCompatibilityKit.git",
-                 branch: "main"),
+                 .branch("main")),
     ],
     targets: [
         .target(
