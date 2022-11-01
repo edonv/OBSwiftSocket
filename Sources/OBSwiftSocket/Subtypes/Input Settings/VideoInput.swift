@@ -8,7 +8,7 @@
 import Foundation
 
 extension InputSettings {
-    public enum VideoCapture {
+    public enum VideoInput {
         public struct Mac: InputSettingsProtocol {
             public static var type: String { "av_capture_input" }
             public static var systemImageName: String? { "camera.fill" }
