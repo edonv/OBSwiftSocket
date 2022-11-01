@@ -14,10 +14,6 @@ let package = Package(
             targets: ["OBSwiftSocket"]),
     ],
     dependencies: [
-//        .package(
-//            name: "swift-format",
-//            url: "https://github.com/apple/swift-format.git",
-//            .upToNextMinor(from: "0.50300.0")),
         .package(url: "https://github.com/edonv/JSONValue.git",
                  branch: "main"),
         .package(url: "https://github.com/edonv/WSPublisher.git",
