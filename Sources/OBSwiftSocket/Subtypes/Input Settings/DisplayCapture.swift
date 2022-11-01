@@ -73,17 +73,11 @@ extension InputSettings {
                 public var bottom: CGFloat
             }
             
-            public struct CropMode: OptionSet, Codable {
-                public var rawValue: UInt8
-                
-                public init(rawValue: UInt8) {
-                    self.rawValue = rawValue
-                }
-                
-                public static let none = CropMode(rawValue: 0 << 0) // 0
-                public static let manualCrop = CropMode(rawValue: 1 << 0) // 1
-                public static let toWindow = CropMode(rawValue: 1 << 1) // 2
-                public static let toWindowAndManual: CropMode = [.manualCrop, .toWindow] // 3
+            public enum CropMode: UInt8, Codable {
+                case none = 0
+                case manualCrop = 1
+                case toWindow = 2
+                case toWindowAndManual = 3
             }
             
             public enum CodingKeys: String, CodingKey {
