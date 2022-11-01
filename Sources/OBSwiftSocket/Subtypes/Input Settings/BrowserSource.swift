@@ -55,10 +55,10 @@ extension InputSettings {
         
         // Hidden
         
-        public var is_local_file: Bool
+        public var is_local_file: Bool?
         
         // "/Users/edon/Documents/Twitch/Custom Browser Sources/death-counter.html"
-        public var local_file: String
+        public var local_file: String?
         
         public enum ControlLevel: Int, Codable {
             case noAccess = 0

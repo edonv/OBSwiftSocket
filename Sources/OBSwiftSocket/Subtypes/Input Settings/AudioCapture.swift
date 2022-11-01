@@ -13,8 +13,10 @@ extension InputSettings {
             public static var type: String { "coreaudio_input_capture" }
             public static var systemImageName: String? { "mic.fill" }
             
+            // Defaults
+            
             // "default"
-            /// Default setting
+            /// - Note: Default setting
             public var device_id: String
             
             // No Hidden
@@ -24,12 +26,14 @@ extension InputSettings {
             public static var type: String { "wasapi_input_capture" }
             public static var systemImageName: String? { "mic.fill" }
             
+            // Defaults
+            
             // "default"
-            /// Default setting
+            /// - Note: Default setting
             public var device_id: String
             
             // false
-            /// Default setting
+            /// - Note: Default setting
             public var use_device_timing: Bool
             
             // No Hidden
@@ -47,6 +51,8 @@ extension InputSettings {
                 }
             }
             
+            // Defaults
+            
             // "SoundflowerEngine:0"
             /// - Note: Default setting
             public var device_id: String
@@ -63,6 +69,8 @@ extension InputSettings {
                     return "speaker.2.fill"
                 }
             }
+            
+            // Defaults
             
             // "default"
             /// - Note: Default setting
@@ -86,7 +94,9 @@ extension InputSettings {
         
         // No Defaults
         
+        // Hidden
+        
         // "Twitch Chat Overlay:HwndWrapper[TransparentTwitchChatWPF.exe;;b80a529d-72e4-4bff-b36f-adb167d20ee8]:TransparentTwitchChatWPF.exe"
-        public var window: String
+        public var window: String?
     }
 }

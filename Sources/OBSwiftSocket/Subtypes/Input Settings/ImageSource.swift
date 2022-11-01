@@ -13,12 +13,17 @@ extension InputSettings {
         public static var type: String { "image_source" }
         public static var systemImageName: String? { "photo" }
         
-        public var file: String
+        // Defaults
         
         /// - Note: Default setting
         public var unload: Bool
         
         /// - Note: Default setting
         public var linear_alpha: Bool
+        
+        // Hidden
+        
+        /// File path
+        public var file: String?
     }
 }

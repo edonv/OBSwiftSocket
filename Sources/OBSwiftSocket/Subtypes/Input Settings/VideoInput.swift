@@ -16,10 +16,12 @@ extension InputSettings {
             // Defaults
             
             // -1
+            // TODO: Possible values?
             /// - Note: Default setting
             public var color_space: Int
             
             // 4294967295
+            // TODO: What is this value?
             /// - Note: Default setting
             public var input_format: Int
             
@@ -42,10 +44,11 @@ extension InputSettings {
             // Hidden
             
             // "0x14410000046d081b"
-            public var device: String
+            /// Device ID
+            public var device: String?
             
             // "USB Camera"
-            public var device_name: String
+            public var device_name: String?
         }
         
         public struct Windows: InputSettingsProtocol {
@@ -57,8 +60,8 @@ extension InputSettings {
             // true
             /// - Note: Default setting
             public var active: Bool
-            // Enum?
             
+            // Enum?
             // 0
             /// - Note: Default setting
             public var audio_output_mode: Int
@@ -98,10 +101,10 @@ extension InputSettings {
             // Hidden
             
             // "USB Video Device:\\\\?\\usb#22vid_046d&pid_081b&mi_00#226&2ddef64f&0&0000#22{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",
-            public var last_video_device_id: WindowsVideoDeviceIdentifier
+            public var last_video_device_id: WindowsVideoDeviceIdentifier?
             
             // "USB Video Device:\\\\?\\usb#22vid_046d&pid_081b&mi_00#226&2ddef64f&0&0000#22{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global"
-            public var video_device_id: WindowsVideoDeviceIdentifier
+            public var video_device_id: WindowsVideoDeviceIdentifier?
         }
     }
 }

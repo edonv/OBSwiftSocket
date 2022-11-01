@@ -32,10 +32,11 @@ extension InputSettings {
             // Hidden
             
             // "zoom.us"
-            public var owner_name: String
+            /// Name of the application that owns the selected window for cropping.
+            public var owner_name: String?
             
             // "Zoom Meeting"
-            public var window_name: String
+            public var window_name: String?
         }
         
         /// window_capture (windows)
@@ -65,7 +66,7 @@ extension InputSettings {
             // Hidden
             
             // "Twitch Chat Overlay:HwndWrapper[TransparentTwitchChatWPF.exe;;b80a529d-72e4-4bff-b36f-adb167d20ee8]:TransparentTwitchChatWPF.exe"
-            public var window: WindowsWindowIdentifier
+            public var window: WindowsWindowIdentifier?
         }
     }
 }

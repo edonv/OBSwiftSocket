@@ -14,6 +14,8 @@ extension InputSettings {
         public static var type: String { "slideshow" }
         public static var systemImageName: String? { "photo.on.rectangle" }
         
+        // Defaults
+        
         /// - Note: Default setting
         public var playback_behavior: PlaybackBehavior
         
@@ -34,16 +36,18 @@ extension InputSettings {
         /// - Note: Default setting
         public var loop: Bool
         
-        public var hide: Bool
-        
-        public var randomize: Bool
-        
         // TODO: what are valid values? Automatic, aspect ratios (16:9, 1:1), 1920x1080
         // "Automatic"
         /// - Note: Default setting
         public var use_custom_size: String
         
-        public var files: [File]
+        // Hidden
+        
+        public var hide: Bool?
+        
+        public var randomize: Bool?
+        
+        public var files: [File]?
         
         public enum PlaybackBehavior: String, Codable {
             case stop_restart

@@ -43,8 +43,6 @@ extension InputSettings {
         /// - Note: Default setting
         public var reconnect_delay_sec: Int
         
-        public var restart_on_activate: Bool // true,
-        
         // 100
         /// - Requires: Value Restrictions - `>= 1, <= 200`
         /// - Note: Default setting
@@ -52,28 +50,33 @@ extension InputSettings {
         
         // Hidden
         
+        // true,
+        public var restart_on_activate: Bool?
+        
         // "/Users/edon/Documents/Twitch/Borders/Dread Starting Soon/Metroid Dread - Starting Soon.mov",
         /// Active when `is_local_file` is `true`
-        public var local_file: String
+        public var local_file: String?
         
         // true,
-        public var hw_decode: Bool
+        public var hw_decode: Bool?
+        
         // true,
-        public var close_when_inactive: Bool
+        public var close_when_inactive: Bool?
+        
         // 1,
-        public var color_range: YUVColorRange
+        public var color_range: YUVColorRange?
         
         // "",
         /// Active when `is_local_file` is `false`
-        public var input: String
+        public var input: String?
         
         // "",
         /// Active when `is_local_file` is `false`
-        public var input_format: String
+        public var input_format: String?
         
         // true,
         /// Active when `is_local_file` is `false`
-        public var seekable: String
+        public var seekable: String?
         
         public enum YUVColorRange: Int, Codable {
             case auto = 0

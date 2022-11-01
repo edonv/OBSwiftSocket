@@ -28,6 +28,8 @@ extension InputSettings {
             }
         }
         
+        // Defaults
+        
         /// - Note: Default setting
         public var color: ColorComponents
         

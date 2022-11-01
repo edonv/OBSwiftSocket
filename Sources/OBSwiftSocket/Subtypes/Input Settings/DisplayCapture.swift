@@ -21,6 +21,8 @@ extension InputSettings {
                 }
             }
             
+            // Defaults
+            
             // 0
             /// Display ID
             /// - Note: Default setting
@@ -39,25 +41,26 @@ extension InputSettings {
             /// - Note: Default setting
             public var window: Int
             
-            // "OBS",
-            public var owner_name: String
-            // "OBS 27.2.4 (mac) - Profile: Twitch Stream - Scenes: Zelda Twitch"
-            public var window_name: String
-            
             // false,
             /// - Note: Default setting
             public var show_empty_names: Bool
             
-            
             // Hidden
             
-            public var manualCrop: Crop
+            // "OBS",
+            /// Name of the application that owns the selected window for cropping.
+            public var owner_name: String?
+            
+            // "OBS 27.2.4 (mac) - Profile: Twitch Stream - Scenes: Zelda Twitch"
+            public var window_name: String?
+            
+            public var manualCrop: Crop?
 //            "manual.origin.x": 19.0,
 //            "manual.origin.y": 12.0,
 //            "manual.size.height": 28.5,
 //            "manual.size.width": 87.0,
             
-            public var windowCrop: Crop
+            public var windowCrop: Crop?
 //            "window.origin.x": 8.0,
 //            "window.origin.y": 16.0,
 //            "window.size.height": 22.0,
@@ -166,14 +169,14 @@ extension InputSettings.DisplayCapture.Mac {
         try container.encode(window_name, forKey: .window_name)
         
         try container.encode(window, forKey: .window)
-        try container.encode(windowCrop.left, forKey: .windowLeft)
-        try container.encode(windowCrop.top, forKey: .windowTop)
-        try container.encode(windowCrop.right, forKey: .windowRight)
-        try container.encode(windowCrop.bottom, forKey: .windowBottom)
+        try container.encodeIfPresent(windowCrop?.left, forKey: .windowLeft)
+        try container.encodeIfPresent(windowCrop?.top, forKey: .windowTop)
+        try container.encodeIfPresent(windowCrop?.right, forKey: .windowRight)
+        try container.encodeIfPresent(windowCrop?.bottom, forKey: .windowBottom)
         
-        try container.encode(manualCrop.left, forKey: .manualLeft)
-        try container.encode(manualCrop.top, forKey: .manualTop)
-        try container.encode(manualCrop.right, forKey: .manualRight)
-        try container.encode(manualCrop.bottom, forKey: .manualBottom)
+        try container.encodeIfPresent(manualCrop?.left, forKey: .manualLeft)
+        try container.encodeIfPresent(manualCrop?.top, forKey: .manualTop)
+        try container.encodeIfPresent(manualCrop?.right, forKey: .manualRight)
+        try container.encodeIfPresent(manualCrop?.bottom, forKey: .manualBottom)
     }
 }

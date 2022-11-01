@@ -47,7 +47,8 @@ extension InputSettings {
         public var track: Int
         
         // Hidden
-        public var playlist: [PlaylistItem]
+        
+        public var playlist: [PlaylistItem]?
         
         public enum PlaybackBehavior: String, Codable {
             case stopRestart = "stop_restart"

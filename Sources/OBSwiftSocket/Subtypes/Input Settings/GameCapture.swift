@@ -13,6 +13,8 @@ extension InputSettings {
         public static var type: String { "game_capture" }
         public static var systemImageName: String? { "gamecontroller" }
         
+        // Defaults
+        
         // false,
         /// - Note: Default setting
         public var allow_transparency: Bool
