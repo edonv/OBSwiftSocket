@@ -58,5 +58,7 @@ extension InputSettings {
         // false
         /// - Note: Default setting
         public var sli_compatibility: Bool
+        
+        // TODO: WHAT ARE THE HIDDEN VALUES?
     }
 }

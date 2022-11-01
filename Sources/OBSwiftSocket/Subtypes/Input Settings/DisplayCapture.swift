@@ -125,6 +125,8 @@ extension InputSettings {
             // 0
             /// - Note: Default setting
             public var method: Int
+            
+            // TODO: WHAT ARE THE HIDDEN VALUES?
         }
     }
 }
