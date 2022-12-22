@@ -3766,9 +3766,9 @@ public enum OBSRequests {
                 return try data.toCodable(OBSRequests.GetVersion.ResponseType.self)
             case .GetStats:
                 return try data.toCodable(OBSRequests.GetStats.ResponseType.self)
-                case .BroadcastCustomEvent:
-        return try data.toCodable(OBSRequests.EmptyResponse.self)
-        // return OBSRequests.BroadcastCustomEvent<E: OBSEvent>.ResponseType.self
+            case .BroadcastCustomEvent:
+                return try data.toCodable(OBSRequests.EmptyResponse.self)
+                // return OBSRequests.BroadcastCustomEvent<E: OBSEvent>.ResponseType.self
             case .CallVendorRequest:
                 return try data.toCodable(OBSRequests.CallVendorRequest.ResponseType.self)
             case .GetHotkeyList:

@@ -711,9 +711,9 @@ func generateRequests(_ reqs: [OBSRequest]) -> String {
                 if r.requestType == "BroadcastCustomEvent" {
                     return
                         """
-                            case .BroadcastCustomEvent:
-                            return try data.toCodable(OBSRequests.EmptyResponse.self)
-                            // return OBSRequests.BroadcastCustomEvent<E: OBSEvent>.ResponseType.self
+                        case .BroadcastCustomEvent:
+                                    return try data.toCodable(OBSRequests.EmptyResponse.self)
+                                    // return OBSRequests.BroadcastCustomEvent<E: OBSEvent>.ResponseType.self
                         """
                 } else {
                     return "case ." + r.requestType + ":"
