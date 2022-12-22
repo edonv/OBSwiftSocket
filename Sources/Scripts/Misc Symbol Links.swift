@@ -46,7 +46,7 @@ public enum MiscExplicitOverrwrites: String {
             "SetVideoSettings.baseWidth": "OBSRequests/SetVideoSettings/baseWidth",
             "SetVideoSettings.baseHeight": "OBSRequests/SetVideoSettings/baseHeight",
             
-//            "BroadcastCustomEvent.CustomEvent": "OBSEvents/CustomEvent",
+            "BroadcastCustomEvent.CustomEvent": "OBSEvents/CustomEvent",
             
             "CallVendorRequest.Response.vendorName.vendorName": "OBSRequests/CallVendorRequest/vendorName",
             "CallVendorRequest.Response.requestType.requestType": "OBSRequests/CallVendorRequest/requestType",
