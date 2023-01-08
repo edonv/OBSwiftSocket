@@ -204,12 +204,13 @@ extension OBSSessionManager {
         
         let pub = Publishers.Merge(getCurrentSceneItemList, eventListener)
             .tryMap { try $0.typedSceneItems() }
-            .zip(try listenForEvent(OBSEvents.InputNameChanged.self, firstOnly: false)) { sceneItems, event -> [OBSRequests.Subtypes.SceneItem] in
-                guard let i = sceneItems.firstIndex(where: { $0.sourceName == event.oldInputName }) else { return sceneItems }
-                var list = sceneItems
-                list[i].sourceName = event.inputName
-                return list
-            }
+//            .zip(try listenForEvent(OBSEvents.InputNameChanged.self, firstOnly: false)) { sceneItems, event -> [OBSRequests.Subtypes.SceneItem] in
+//                guard let i = sceneItems.firstIndex(where: { $0.sourceName == event.oldInputName }) else { return sceneItems }
+//                var list = sceneItems
+//                list[i].sourceName = event.inputName
+//                return list
+//            }
+            .print()
             .receive(on: publisherDataQueue)
             .handleEvents(receiveCompletion: { [weak self] _ in
                 self?.publishers.sceneItemList.removeValue(forKey: sceneName)
