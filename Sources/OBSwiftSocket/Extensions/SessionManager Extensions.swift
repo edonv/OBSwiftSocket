@@ -184,9 +184,6 @@ extension OBSSessionManager {
             return pub
         }
         
-        // Get initial value
-        let getCurrentSceneItemList = try sendRequest(OBSRequests.GetSceneItemList(sceneName: sceneName))
-        
         // Listen for updates to scene item list
         let itemCreatedListener = try listenForEvent(OBSEvents.SceneItemCreated.self, firstOnly: false)
             .map(\.sceneName)
@@ -195,14 +192,17 @@ extension OBSSessionManager {
         let listReindexedListener = try listenForEvent(OBSEvents.SceneItemListReindexed.self, firstOnly: false)
             .map(\.sceneName)
         
-        let eventListener = Publishers.Merge3(itemCreatedListener,
-                                              itemRemovedListener,
-                                              listReindexedListener)
+        // The Future feeds the current sceneName into the same Merged feed with the listeners.
+        // Makes code a little bit cleaner so it doesn't have to call the request separate to get the initial value.
+        let sceneNameListener = Publishers.Merge4(Future(withValue: sceneName),
+                                                  itemCreatedListener,
+                                                  itemRemovedListener,
+                                                  listReindexedListener)
             // Make sure it was the requested scene that was updated
             .filter { updatedScene in updatedScene == sceneName }
             .tryFlatMap { try self.sendRequest(OBSRequests.GetSceneItemList(sceneName: $0)) }
         
-        let pub = Publishers.Merge(getCurrentSceneItemList, eventListener)
+        let pub = sceneNameListener
             .tryMap { try $0.typedSceneItems() }
 //            .zip(try listenForEvent(OBSEvents.InputNameChanged.self, firstOnly: false)) { sceneItems, event -> [OBSRequests.Subtypes.SceneItem] in
 //                guard let i = sceneItems.firstIndex(where: { $0.sourceName == event.oldInputName }) else { return sceneItems }
