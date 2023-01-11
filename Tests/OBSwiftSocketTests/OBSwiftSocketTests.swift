@@ -12,7 +12,7 @@ final class OBSwiftSocketTests: XCTestCase {
         super.setUp()
         
         let connectionData = OBSSessionManager.ConnectionData(
-            ipAddress: "192.168.1.102",
+            ipAddress: "127.0.0.1",
             port: 4455,
             password: "qhsZrtFMZID7wuiR",
             encodingProtocol: .json
