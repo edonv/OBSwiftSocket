@@ -219,4 +219,53 @@ final class OBSwiftSocketTests: XCTestCase {
         
         wait(for: [expectationConnect], timeout: 15)
     }
+    
+    func testSimultaneousPublishers() {
+        let expectation1 = self.expectation(description: "Studio Mode Success")
+        let expectation2 = self.expectation(description: "Scene Name Pair Success")
+        let expectation3 = self.expectation(description: "Scene List Success")
+        let expectation4 = self.expectation(description: "Active Scene Item List Success")
+        
+        do {
+            session.waitUntilConnected
+                .tryFlatMap { try self.session.studioModeStatePublisher() }
+                .receive(on: DispatchQueue.main)
+                .print("Studio Mode")
+                .sink(receiveCompletion: { result in
+                }, receiveValue: { _ in expectation1.fulfill() })
+                .store(in: &observers)
+
+            session.waitUntilConnected
+                .tryFlatMap { try self.session.currentSceneNamePairPublisher() }
+                .receive(on: DispatchQueue.main)
+                .print("Scene Name Pair")
+                .sink(receiveCompletion: { result in
+                }, receiveValue: { _ in expectation2.fulfill() })
+                .store(in: &observers)
+            
+            session.waitUntilConnected
+                .tryFlatMap { try self.session.sceneListPublisher() }
+                .receive(on: DispatchQueue.main)
+                .print("Scene List")
+                .sink(receiveCompletion: { result in
+                }, receiveValue: { _ in expectation3.fulfill() })
+                .store(in: &observers)
+            
+            session.waitUntilConnected
+                .tryFlatMap { try self.session.activeSceneItemListPublisher() }
+                .receive(on: DispatchQueue.main)
+                .print("Active Scene Item List")
+                .sink(receiveCompletion: { result in
+                }, receiveValue: { _ in expectation4.fulfill() })
+                .store(in: &observers)
+            
+            try connectToOBS()
+                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+                .store(in: &observers)
+        } catch {
+            print(error)
+        }
+        
+        wait(for: [expectation1, expectation2, expectation3, expectation4], timeout: 10)
+    }
 }
