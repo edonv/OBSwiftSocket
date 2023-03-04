@@ -41,4 +41,4 @@ Examples coming soon!
 
 ## To-Do's
 
-[ ] Make Batch Requests easier to work with.
+- [ ] Make Batch Requests easier to work with.
