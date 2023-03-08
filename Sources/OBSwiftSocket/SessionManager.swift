@@ -266,16 +266,19 @@ extension OBSSessionManager {
     }
     
     /// Sends a ``OpDataTypes/Request`` message wrapped around the given ``OBSRequest`` body.
-    /// - Parameter request: The ``OBSRequest`` that in a should be sent.
+    /// - Parameters:
+    ///   - request: The ``OBSRequest`` that should be sent.
+    ///   - messageID: An optional ID for the ``OpDataTypes.Request`` message.
     /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
     /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
     /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
     /// response in the form of the associated ``OBSRequest/ResponseType``.
-    public func sendRequest<R: OBSRequest>(_ request: R) async throws -> R.ResponseType {
+    public func sendRequest<R: OBSRequest>(_ request: R,
+                                           messageID: String? = nil) async throws -> R.ResponseType {
         try checkForConnection()
         
         guard let type = R.typeEnum,
-              let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
+              let body = OpDataTypes.Request(type: type, id: messageID ?? UUID().uuidString, request: request) else {
             throw Errors.buildingRequest
         }
         
@@ -289,15 +292,19 @@ extension OBSSessionManager {
     }
     
     /// Sends a ``OpDataTypes/Request`` message wrapped around the given ``OBSRequest`` body.
-    /// - Parameter request: The ``OBSRequest`` that in a should be sent.
+    /// - Parameters:
+    ///   - request: The ``OBSRequest`` that should be sent.
+    ///   - messageID: An optional ID for the ``OpDataTypes.Request`` message.
     /// - Throws: [WebSocketPublisher.WSErrors.noActiveConnection](https://github.com/edonv/WSPublisher)
     /// error if there isn't an active connection. Thrown by ``OBSSessionManager/checkForConnection()``.
     /// - Returns: A [Publisher](https://developer.apple.com/documentation/combine/publisher) containing a
     /// response in the form of the associated ``OBSRequest/ResponseType``.
-    public func sendRequest<R: OBSRequest>(_ request: R) throws -> AnyPublisher<R.ResponseType, Error> {
+    public func sendRequest<R: OBSRequest>(_ request: R,
+                                           messageID: String? = nil) throws -> AnyPublisher<R.ResponseType, Error> {
         try checkForConnection()
+        
         guard let type = R.typeEnum,
-              let body = OpDataTypes.Request(type: type, id: UUID().uuidString, request: request) else {
+              let body = OpDataTypes.Request(type: type, id: messageID ?? UUID().uuidString, request: request) else {
             return Fail(error: Errors.buildingRequest)
                 .eraseToAnyPublisher()
         }
