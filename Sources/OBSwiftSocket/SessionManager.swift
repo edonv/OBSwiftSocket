@@ -548,9 +548,9 @@ extension OBSSessionManager {
             .eraseToAnyPublisher()
         
         publisherDataQueue.sync {
-        publishers.responsePublishers[pubID] = responsePub
-            .map { $0 as OBSRequestResponse }
-            .eraseToAnyPublisher()
+            publishers.responsePublishers[pubID] = responsePub
+                .map { $0 as OBSRequestResponse }
+                .eraseToAnyPublisher()
         }
         
         return responsePub
