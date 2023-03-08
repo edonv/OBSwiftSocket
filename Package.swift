@@ -5,8 +5,8 @@ import PackageDescription
 let package = Package(
     name: "OBSwiftSocket",
     platforms: [
-        .iOS(SupportedPlatform.IOSVersion.v13),
-        .macOS(SupportedPlatform.MacOSVersion.v10_15)
+        .iOS(.v13),
+        .macOS(.v10_15)
     ],
     products: [
         .library(
