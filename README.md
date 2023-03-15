@@ -7,6 +7,10 @@
 
 - obs-websocket v5 specification: https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 
+## IMPORTANT
+
+OBSwiftSocket is currently on pause until I have more time to work on it again. It mostly works, but has some issues that I'm trying to work out. In the interim, create an Issue if something urgently needs to be fixed and I'll see what I can do!
+
 ## Installation
 
 ### Swift Package Manager
