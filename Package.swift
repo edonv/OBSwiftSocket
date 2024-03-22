@@ -34,7 +34,8 @@ let package = Package(
                 "MessagePacker",
                 "AsyncCompatibilityKit",
                 .product(name: "CombineExtensions", package: "CommonExtensions")
-            ]
+            ],
+            resources: [.copy("../PrivacyInfo.xcprivacy")]
         ),
         .executableTarget(
             name: "Scripts",
